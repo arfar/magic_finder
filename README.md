@@ -215,20 +215,17 @@ Fingers crossed that all compiled and stuff... then copy the bin
 cp build/rofi ~/bin
 ```
 
-## FIXME, TODO & Features That Could be Good
-
-### Features
+## Potential Features
  * Display the actual card image (probably won't do this)
  * Add some classic nicknames (might be difficult to find them all). examples include:
    - Bob - Dark Confidant
    - AK - Accumulated Knowledge
    - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
 
-### Code improvements / fixes
- * Figure out (if possible) to make the Scryfall URI (L?) clickable.
+## TODO / FIXME / Code improvements
+ * Figure out (if possible) to make the Scryfall URI (L?) clickable in `rofi`.
  * Optionally, put the Scryfall URI into the clipboard.
  * Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
- * Gracefully exiting the scripts early (i.e. I hit CTRL+g just exits everything - currently it'll give some error like "no string")
  * Test the DbErrors stuff.
  * Misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
  * Some kind of auto-magic direct link between the `ExitCode`s set out in `main.rs` and the `rofi` scripts. Currently I need to manually make sure they're the same between the `rust` code and the `sh` code. I think `build.rs` could do something like this.

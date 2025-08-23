@@ -30,6 +30,11 @@ EOF
 
 CARD_OUTPUT=$($CARGO_SCRIPT_LOCATION/magic_finder --exact $SELECTION)
 
+if [ -z "$CARD_OUTPUT" ]; then
+   # No card selected - most likely an early exit
+   exit 1
+fi
+
 # If you double check the a rofi selection it seems to prevent the error window from popping up
 #  I think this is because it registers the second click as a click outside the window which exits
 #  the rofi -e message
@@ -48,14 +53,24 @@ if [ $RETURN -eq 105 ]; then
 SELECTION=$(rofi -dmenu -p "Did you mean?" -i << EOF
 $CARDS
 EOF
-)
+	 )
+
+if [ -z "$SELECTION" ]; then
+   # Nothing word - most likely an early exit
+   exit 1
+fi
 
 CARDS=$($CARGO_SCRIPT_LOCATION/magic_finder $SELECTION)
 
 SELECTION=$(rofi -dmenu -i << EOF
 $CARDS
 EOF
-)
+	 )
+
+if [ -z "$SELECTION" ]; then
+   # No card selected - most likely an early exit
+   exit 1
+fi
 
 CARD_OUTPUT=$($CARGO_SCRIPT_LOCATION/magic_finder --exact $SELECTION)
 
