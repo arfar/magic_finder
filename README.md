@@ -217,8 +217,8 @@ cp build/rofi ~/bin
 
 ## FIXME, TODO & Features That Could be Good
  * Remove the non-card cards. Examples I've come across are:
-   ** Planes: Black Lotus Lounge
-   ** Art Cards, e.g. https://scryfall.com/card/altr/15/%C3%A9owyn-fearless-knight-%C3%A9owyn-fearless-knight?utm_source=api
+   - Planes: Black Lotus Lounge
+   - Art Cards, e.g. https://scryfall.com/card/altr/15/%C3%A9owyn-fearless-knight-%C3%A9owyn-fearless-knight?utm_source=api
  * Figure out (if possible) to make the Scryfall URI (L?) clickable.
  * Optionally, put the Scryfall URI into the clipboard.
  * Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
@@ -230,11 +230,11 @@ cp build/rofi ~/bin
    I'm guessing would involve cargo build scripts (or just a find+replace?)
  * Add more tests and improve the ones in `deser.rs`
  * Remove / Separate `deser.rs` into a seperate repo/module entirely. It could maybe be useful for others.
-   ** Optionally/Alternatively delete the stuff in `deser.rs` that I don't use.
+   - Optionally/Alternatively delete the stuff in `deser.rs` that I don't use.
  * Add some classic nicknames (might be difficult to find them all). examples include:
-   ** Bob - Dark Confidant
-   ** AK - Accumulated Knowledge
-   ** find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
+   - Bob - Dark Confidant
+   - AK - Accumulated Knowledge
+   - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
 
 ## Thanks
 
