@@ -11,7 +11,7 @@ This repo has 2 main parts to it:
  * The `magic_finder` rust code, which does the "heavy lifting" of updating a database, searching through it for cards, and finding close names (kind of)
  * The supporting scripts which use [`rofi`](https://github.com/davatorium/rofi)
  
-`magic_finder` can be used without the rofi parts if you wanted a command for loading showing basic mtg card info from the CLI.
+`magic_finder` can be used without the rofi parts if you wanted a command for showing basic mtg card info from the CLI.
 
 The `rofi` part is so that I can quickly and easily get the card info I want. Basically just adds a very simple and easy GUI to the `magic_finder` part. I've written 2 wrapper scripts to enable this.
  
@@ -27,9 +27,62 @@ Very annoyingly, the Ubuntu repos do *not* have this version. They have an earli
 
 I think `rofi` only works with Linux, maybe on MacOS, almost certainly not on Windows. For quick desktop-based search, you'll need to run Linux (or maybe MacOS). I haven't tested MacOS because I don't have access to a machine that runs it.
 
-## Usage
+## Example Usage (with `rofi`)
 
-**TODO**
+Let's try find Black Lotus, but we did a typo. Run the `magic_finder_search_with_rofi.sh` script and input your typo.
+
+![search with typo](images/first.png)
+
+Because no cards are found with the term "blakc", it'll suggest what you might've meant.
+
+![search result of the typo](images/misspelled.png)
+
+Now it'll re-do the search with the correctly spelled word (unfortunate for us "black" is a common word in magic, so we're presented with more options)
+
+![black search output](images/black_output.png)
+
+Luckily you can filter further by typing in some more words like "Lotus").
+
+![with "lotus" now to filter further](images/search_lotus.png)
+
+And finally hit enter or double click on the card you want to get the output you need.
+
+![black lotus output](images/black_lotus_card.png)
+
+### Example Usage Without Rofi
+
+I have not coded any sort of similar "interactive" mode for the `magic_finder` tool itself. As such, you'll need to do the same steps yourself, but manually and without interactive search.
+
+```
+$ magic_finder blakc
+black
+blast
+... <SNIP> ...
+```
+
+```
+$ magic_finder black
+Argivian Blacksmith
+Ballad of the Black Flag
+... <SNIP> ...
+```
+
+```
+$ magic_finder --exact Black Lotus
+Black Lotus	{0}
+Artifact
+{T}, Sacrifice this artifact: Add three mana of any one color.
+Scryfall URI: https://scryfall.com/card/vma/4/black-lotus?utm_source=api
+```
+
+Without exact, this tool will imitate Scryfall search and search for each individual word in the card.
+
+```
+$ magic_finder Black Lotus
+Black Lotus
+Black Lotus Lounge
+Blacker Lotus
+```
 
 ## Installation, First Usage, and Updating
 
@@ -120,28 +173,6 @@ The binary and scripts should be in the folder when you run `which magic_finder`
 
 Optioanally, from within the `magic_finder` folder, run `cargo uninstall`. This will remove the binary and it should tell you where that was. Hopefully the scripts are in the same place, so go to that folder and delete the remainder of the files that start with `magic_finder`.
  
-## How It Looks (with `rofi`)
-
-Let's try find Black Lotus, but we did a typo to begin with. Run the `magic_finder_search_with_rofi.sh` script and input your typo.
-
-![search with typo](images/first.png)
-
-Because no cards are found with the term "blakc", it'll suggest what you might've meant.
-
-![search result of the typo](images/misspelled.png)
-
-Now it'll re-do the search with the correctly spelled word (unfortunate for us "black" is a common word in magic, so we're presented with more options)
-
-![black search output](images/black_output.png)
-
-Luckily you can filter further by typing in some more words like "Lotus").
-
-![with "lotus" now to filter further](images/search_lotus.png)
-
-And finally hit enter or double click on the card you want to get the output you need.
-
-![black lotus output](images/black_lotus_card.png)
-
 ## Why this exists
 
 I like watch Magic the Gathering (TM) videos, expecially while coding, working, writing, whatever. Often, I don't know what card they're talking about. They'll often say the card name (sometimes a nickname - this tool doesn't help with that), and show it on the screen briefly (or in a tiny/obscured view), and I'll miss what it actually does. When this happens, I need to open a tab on my browser, go to [Scryfall](scryfall.com), type in the name, (sometimes) click the specific card, and the view it. This takes 2-3 page loads, changing my active window and is just a bit of a pain.
