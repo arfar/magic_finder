@@ -222,7 +222,8 @@ cp build/rofi ~/bin
    - AK - Accumulated Knowledge
    - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
 
-## TODO / FIXME / Code improvements
+## TODO / FIXME / BUGS / Code improvements
+ * Display both sides of a doubleside card
  * Figure out (if possible) to make the Scryfall URI (L?) clickable in `rofi`.
  * Optionally, put the Scryfall URI into the clipboard.
  * Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.

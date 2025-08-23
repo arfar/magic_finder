@@ -20,6 +20,7 @@ impl Termination for MtgCardExit {
             MtgCardExit::EmptySearchString => ExitCode::from(101),
             MtgCardExit::NoExactMatchCard => ExitCode::from(102),
             MtgCardExit::DidYouMean => ExitCode::from(105),
+            MtgCardExit::MultipleCardsMatch => ExitCode::from(106),
             MtgCardExit::DbError => ExitCode::from(150),
             MtgCardExit::ExactCardFound => ExitCode::from(200),
             MtgCardExit::UpdateSuccess => ExitCode::from(201),
@@ -33,6 +34,7 @@ enum MtgCardExit {
     EmptySearchString,
     NoExactMatchCard,
     DidYouMean,
+    MultipleCardsMatch,
     DbError,
     ExactCardFound,
     UpdateSuccess,
@@ -143,8 +145,7 @@ fn main() -> MtgCardExit {
                     .name
             );
         }
-        // TODO update this to be more meaningful
-        MtgCardExit::Success
+        MtgCardExit::MultipleCardsMatch
     }
 }
 

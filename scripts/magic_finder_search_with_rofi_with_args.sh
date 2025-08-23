@@ -21,7 +21,7 @@ fi
 #######################
 ## Cards to select from
 #######################
-if [ $RETURN -eq 0 ]; then
+if [ $RETURN -eq 106 ]; then
 
 SELECTION=$(rofi -dmenu -i << EOF
 $CARDS
