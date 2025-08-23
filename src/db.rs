@@ -5,7 +5,7 @@ use std::fmt;
 use std::fs;
 use std::path::PathBuf;
 
-use super::deser::ScryfallCard;
+use super::deser::{ScryfallCard, SetType};
 use super::utils::{create_local_data_folder, get_local_data_folder, SQLITE_FILENAME};
 
 fn get_local_data_sqlite_file() -> PathBuf {
@@ -277,6 +277,14 @@ pub fn update_db_with_file(file: PathBuf) -> bool {
     let mut conn = rusqlite::Connection::open(sqlite_file).unwrap();
     let tx = conn.transaction().unwrap();
     for card in ac {
+        // This should hopefully filter out Planes cards (but not Planeswalkers!)
+        if card.type_line.contains("Plane ") {
+            continue;
+        }
+        // This should hopefully filter out art cards and similar sorts of non-card cards
+        if card.set_type == SetType::Memorabilia {
+            continue;
+        }
         for word in card.name.split_whitespace() {
             let word = deunicode(&word.to_lowercase());
             let res = tx.execute(

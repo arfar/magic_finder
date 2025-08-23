@@ -216,25 +216,27 @@ cp build/rofi ~/bin
 ```
 
 ## FIXME, TODO & Features That Could be Good
- * Remove the non-card cards. Examples I've come across are:
-   - Planes: Black Lotus Lounge
-   - Art Cards, e.g. https://scryfall.com/card/altr/15/%C3%A9owyn-fearless-knight-%C3%A9owyn-fearless-knight?utm_source=api
+
+### Features
+ * Display the actual card image (probably won't do this)
+ * Add some classic nicknames (might be difficult to find them all). examples include:
+   - Bob - Dark Confidant
+   - AK - Accumulated Knowledge
+   - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
+
+### Code improvements / fixes
  * Figure out (if possible) to make the Scryfall URI (L?) clickable.
  * Optionally, put the Scryfall URI into the clipboard.
  * Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
  * Gracefully exiting the scripts early (i.e. I hit CTRL+g just exits everything - currently it'll give some error like "no string")
  * Test the DbErrors stuff.
  * Misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
- * Display the actual card image (probably won't do this)
  * Some kind of auto-magic direct link between the `ExitCode`s set out in `main.rs` and the `rofi` scripts. Currently I need to manually make sure they're the same between the `rust` code and the `sh` code. I think `build.rs` could do something like this.
    I'm guessing would involve cargo build scripts (or just a find+replace?)
  * Add more tests and improve the ones in `deser.rs`
  * Remove / Separate `deser.rs` into a seperate repo/module entirely. It could maybe be useful for others.
    - Optionally/Alternatively delete the stuff in `deser.rs` that I don't use.
- * Add some classic nicknames (might be difficult to find them all). examples include:
-   - Bob - Dark Confidant
-   - AK - Accumulated Knowledge
-   - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
+ * Fix all of the unchecked Results and deal with them (or just panic)
 
 ## Thanks
 

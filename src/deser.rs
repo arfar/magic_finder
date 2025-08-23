@@ -433,7 +433,7 @@ pub enum Component {
 }
 
 #[allow(dead_code)]
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, PartialEq)]
 pub enum SetType {
     #[serde(rename = "alchemy")]
     Alchemy,
