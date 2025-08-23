@@ -1,0 +1,75 @@
+#!/bin/sh
+
+CARGO_SCRIPT_LOCATION="$HOME/.cargo/bin"
+
+# Note to self in this... The whitespace seemed to fuck the ifs up. Not sure why.
+# This is why it's all flat and ugly
+
+CARDS=$($CARGO_SCRIPT_LOCATION/magic_finder $@)
+RETURN=$?
+
+#######################
+## Exact card found - just print the card
+#######################
+if [ $RETURN -eq 200 ]; then
+
+rofi -e "$CARDS"
+
+fi
+
+
+#######################
+## Cards to select from
+#######################
+if [ $RETURN -eq 0 ]; then
+
+SELECTION=$(rofi -dmenu -i << EOF
+$CARDS
+EOF
+)
+
+CARD_OUTPUT=$($CARGO_SCRIPT_LOCATION/magic_finder --exact $SELECTION)
+
+# If you double check the a rofi selection it seems to prevent the error window from popping up
+#  I think this is because it registers the second click as a click outside the window which exits
+#  the rofi -e message
+sleep 0.05
+
+rofi -e "$CARD_OUTPUT"
+fi
+
+##########################
+## Not even one card that matched - try a close string
+##########################
+if [ $RETURN -eq 105 ]; then
+
+# TODO do something different with no matching string at all - perhaps even a different ExitCode?
+
+SELECTION=$(rofi -dmenu -p "Did you mean?" -i << EOF
+$CARDS
+EOF
+)
+
+CARDS=$($CARGO_SCRIPT_LOCATION/magic_finder $SELECTION)
+
+SELECTION=$(rofi -dmenu -i << EOF
+$CARDS
+EOF
+)
+
+CARD_OUTPUT=$($CARGO_SCRIPT_LOCATION/magic_finder --exact $SELECTION)
+
+sleep 0.05
+
+rofi -e "$CARD_OUTPUT"
+
+fi
+
+###############################
+## No seach string input at all
+###############################
+if [ $RETURN -eq 101 ]; then
+
+rofi -e "No search string found"
+
+fi
