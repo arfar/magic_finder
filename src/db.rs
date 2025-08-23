@@ -1,5 +1,5 @@
 use deunicode::deunicode;
-use rusqlite;
+use rusqlite::{params, params_from_iter, Connection};
 use std::cmp::Ordering;
 use std::fmt;
 use std::fs;
@@ -16,7 +16,7 @@ fn get_local_data_sqlite_file() -> PathBuf {
 
 pub fn get_all_card_names() -> Vec<String> {
     let sqlite_file = get_local_data_sqlite_file();
-    let conn = rusqlite::Connection::open(sqlite_file).unwrap();
+    let conn = Connection::open(sqlite_file).unwrap();
     let mut stmt = conn.prepare("SELECT name FROM cards;").unwrap();
     let mut rows = stmt.query([]).unwrap();
     let mut card_names = Vec::new();
@@ -28,7 +28,7 @@ pub fn get_all_card_names() -> Vec<String> {
 
 pub fn get_all_lowercase_card_names() -> Vec<String> {
     let sqlite_file = get_local_data_sqlite_file();
-    let conn = rusqlite::Connection::open(sqlite_file).unwrap();
+    let conn = Connection::open(sqlite_file).unwrap();
     let mut stmt = conn.prepare("SELECT lowercase_name FROM cards;").unwrap();
     let mut rows = stmt.query([]).unwrap();
     let mut card_names = Vec::new();
@@ -40,7 +40,7 @@ pub fn get_all_lowercase_card_names() -> Vec<String> {
 
 pub fn get_all_mtg_words() -> Vec<String> {
     let sqlite_file = get_local_data_sqlite_file();
-    let conn = rusqlite::Connection::open(sqlite_file).unwrap();
+    let conn = Connection::open(sqlite_file).unwrap();
     let mut stmt = conn.prepare("SELECT word FROM mtg_words;").unwrap();
     let mut rows = stmt.query([]).unwrap();
     let mut card_names = Vec::new();
@@ -58,17 +58,16 @@ impl fmt::Display for DbCard {
             None => writeln!(f, "{}", self.name)?,
         }
         writeln!(f, "{}", self.type_line)?;
-        match &self.oracle_text {
-            Some(ot) => writeln!(f, "{}", ot)?,
-            None => (),
+        if let Some(ot) = &self.oracle_text {
+            writeln!(f, "{}", ot)?
         }
-        match &self.power_toughness {
-            Some(pt) => writeln!(f, "{}", pt)?,
-            None => (),
+
+        if let Some(pt) = &self.power_toughness {
+            writeln!(f, "{}", pt)?
         }
-        match &self.loyalty {
-            Some(l) => writeln!(f, "Starting Loyalty: {}", l)?,
-            None => (),
+
+        if let Some(l) = &self.loyalty {
+            writeln!(f, "Starting Loyalty: {}", l)?
         }
         writeln!(f, "Scryfall URI: {}", self.scryfall_uri)?;
         Ok(())
@@ -114,7 +113,7 @@ pub enum GetNameType {
 
 pub fn get_card_by_name(name: &str, name_type: GetNameType) -> Option<DbCard> {
     let sqlite_file = get_local_data_sqlite_file();
-    let conn = rusqlite::Connection::open(sqlite_file).unwrap();
+    let conn = Connection::open(sqlite_file).unwrap();
     let sql = match name_type {
         GetNameType::Name => {
             "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri
@@ -127,28 +126,24 @@ pub fn get_card_by_name(name: &str, name_type: GetNameType) -> Option<DbCard> {
     };
     let mut stmt = conn.prepare(sql).unwrap();
     let mut rows = stmt.query([name]).unwrap();
-    match rows.next().unwrap() {
-        Some(row) => Some(DbCard {
-            name: row.get(0).unwrap(),
-            lowercase_name: row.get(1).unwrap(),
-            type_line: row.get(2).unwrap(),
-            oracle_text: row.get(3).unwrap(),
-            power_toughness: row.get(4).unwrap(),
-            loyalty: row.get(5).unwrap(),
-            mana_cost: row.get(6).unwrap(),
-            scryfall_uri: row.get(7).unwrap(),
-        }),
-        None => None,
-    }
+    rows.next().unwrap().map(|row| DbCard {
+        name: row.get(0).unwrap(),
+        lowercase_name: row.get(1).unwrap(),
+        type_line: row.get(2).unwrap(),
+        oracle_text: row.get(3).unwrap(),
+        power_toughness: row.get(4).unwrap(),
+        loyalty: row.get(5).unwrap(),
+        mana_cost: row.get(6).unwrap(),
+        scryfall_uri: row.get(7).unwrap(),
+    })
 }
 
-pub fn find_matching_cards_scryfall_style(search_strings: &Vec<String>) -> Vec<DbCard> {
+pub fn find_matching_cards_scryfall_style(search_strings: &[String]) -> Vec<DbCard> {
     assert!(!search_strings.is_empty());
     let sqlite_file = get_local_data_sqlite_file();
-    let conn = rusqlite::Connection::open(sqlite_file).unwrap();
+    let conn = Connection::open(sqlite_file).unwrap();
     let mut percentaged_string = Vec::new();
-    // I know that .clone fixes my problem - I'm not sure why I need to though
-    for mut search_string in search_strings.clone() {
+    for mut search_string in search_strings.iter().cloned() {
         search_string.push('%');
         search_string.insert(0, '%');
         percentaged_string.push(search_string);
@@ -163,7 +158,7 @@ pub fn find_matching_cards_scryfall_style(search_strings: &Vec<String>) -> Vec<D
     sql.pop();
     sql.pop();
     let mut stmt = conn.prepare(&sql).unwrap();
-    stmt.query_map(rusqlite::params_from_iter(percentaged_string), |row| {
+    stmt.query_map(params_from_iter(percentaged_string), |row| {
         Ok(DbCard {
             name: row.get(0).unwrap(),
             lowercase_name: row.get(1).unwrap(),
@@ -182,7 +177,7 @@ pub fn find_matching_cards_scryfall_style(search_strings: &Vec<String>) -> Vec<D
 
 pub fn find_matching_cards(name: &str) -> Vec<DbCard> {
     let sqlite_file = get_local_data_sqlite_file();
-    let conn = rusqlite::Connection::open(sqlite_file).unwrap();
+    let conn = Connection::open(sqlite_file).unwrap();
     // There must be something better than this - although I don't think it's possible with a str
     let mut name = name.to_string();
     name.push('%');
@@ -221,7 +216,7 @@ pub fn check_db_exists_and_populated() -> Result<(), DbExistanceErrors> {
     if !sqlite_file.exists() {
         return Err(DbExistanceErrors::DbFileDoesntExist);
     }
-    let conn = rusqlite::Connection::open(sqlite_file).unwrap();
+    let conn = Connection::open(sqlite_file).unwrap();
     let mut words_stmt = conn.prepare("SELECT COUNT(*) FROM mtg_words;").unwrap();
     let mut rows = words_stmt.query([]).unwrap();
     match rows.next().unwrap() {
@@ -263,10 +258,10 @@ pub fn init_db() {
     println!("sqlite file location: {}", sqlite_file.display());
     let _res = fs::remove_file(&sqlite_file);
     // TODO actually check result for whether it was a permissions thing or something
-    let connection = rusqlite::Connection::open(sqlite_file).unwrap();
-    connection.execute(&CREATE_CARDS_TABLE_SQL, ()).unwrap();
+    let connection = Connection::open(sqlite_file).unwrap();
+    connection.execute(CREATE_CARDS_TABLE_SQL, ()).unwrap();
     connection
-        .execute(&CREATE_MAGIC_WORDS_TABLE_SQL, ())
+        .execute(CREATE_MAGIC_WORDS_TABLE_SQL, ())
         .unwrap();
 }
 
@@ -274,7 +269,7 @@ pub fn update_db_with_file(file: PathBuf) -> bool {
     let ac = fs::read_to_string(file).unwrap();
     let ac: Vec<ScryfallCard> = serde_json::from_str(&ac).unwrap();
     let sqlite_file = get_local_data_sqlite_file();
-    let mut conn = rusqlite::Connection::open(sqlite_file).unwrap();
+    let mut conn = Connection::open(sqlite_file).unwrap();
     let tx = conn.transaction().unwrap();
     for card in ac {
         // This should hopefully filter out Planes cards (but not Planeswalkers!)
@@ -285,6 +280,7 @@ pub fn update_db_with_file(file: PathBuf) -> bool {
         if card.set_type == SetType::Memorabilia {
             continue;
         }
+
         for word in card.name.split_whitespace() {
             let word = deunicode(&word.to_lowercase());
             let res = tx.execute(
@@ -302,17 +298,9 @@ pub fn update_db_with_file(file: PathBuf) -> bool {
             Some(ot) => ot,
             None => "<No Oracle Text>".to_string(),
         };
-        let loyalty = match card.loyalty {
-            Some(loy) => Some(loy),
-            None => None,
-        };
-        let mana_cost = match card.mana_cost {
-            Some(mc) => Some(mc),
-            None => None,
-        };
         let res = tx.execute(
             "INSERT INTO cards (name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-            rusqlite::params![card.name, lowercase_name, card.type_line, oracle_text, power_toughness, loyalty, mana_cost, card.scryfall_uri],
+            params![card.name, lowercase_name, card.type_line, oracle_text, power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri],
         );
     }
     tx.commit();

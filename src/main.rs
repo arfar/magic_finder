@@ -89,8 +89,8 @@ fn main() -> MtgCardExit {
         return MtgCardExit::EmptySearchString;
     }
 
-    match check_db_exists_and_populated() {
-        Err(e) => match e {
+    if let Err(e) = check_db_exists_and_populated() {
+        match e {
             DbExistanceErrors::DbFileDoesntExist => {
                 println!("Database doesn't exist - did you update?");
                 return MtgCardExit::DbError;
@@ -103,8 +103,7 @@ fn main() -> MtgCardExit {
                 println!("Database doesn't have any words (but has cards) - try updating again?");
                 return MtgCardExit::DbError;
             }
-        },
-        Ok(_) => (),
+        }
     }
 
     if args.exact {
@@ -119,7 +118,7 @@ fn main() -> MtgCardExit {
         let mut close_names = Vec::new();
         for search_string in args.search_text {
             for mtg_card_name in &mtg_words {
-                let dist = damerau_levenshtein(&search_string, &mtg_card_name);
+                let dist = damerau_levenshtein(&search_string, mtg_card_name);
                 if dist <= 2 {
                     close_names.push((dist, mtg_card_name));
                 }
@@ -129,11 +128,11 @@ fn main() -> MtgCardExit {
         for (_, card) in close_names {
             println!("{}", card);
         }
-        return MtgCardExit::DidYouMean;
+        MtgCardExit::DidYouMean
     } else if matching_cards.len() == 1 {
         let card = get_card_by_name(&matching_cards[0].name, GetNameType::Name).unwrap();
         println!("{}", card);
-        return MtgCardExit::ExactCardFound;
+        MtgCardExit::ExactCardFound
     } else {
         matching_cards.sort();
         for card in matching_cards {
@@ -145,7 +144,7 @@ fn main() -> MtgCardExit {
             );
         }
         // TODO update this to be more meaningful
-        return MtgCardExit::Success;
+        MtgCardExit::Success
     }
 }
 
@@ -155,7 +154,7 @@ fn _combine_search_strings(search_strings: Vec<String>) -> String {
     let mut search_string = String::new();
     for card in search_strings {
         search_string.push_str(&card.to_lowercase());
-        search_string.push_str(" ");
+        search_string.push(' ');
     }
     search_string.pop();
     search_string
