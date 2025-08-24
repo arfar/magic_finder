@@ -337,6 +337,10 @@ pub fn update_db_with_file(file: PathBuf) -> bool {
         if card.set_type == SetType::Memorabilia {
             continue;
         }
+        // I don't think one would need to search for a token either
+        if card.set_type == SetType::Token {
+            continue;
+        }
 
         if card.card_faces.is_some() {
             add_double_card(&tx, &card);
