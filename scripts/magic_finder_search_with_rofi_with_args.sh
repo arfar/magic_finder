@@ -53,7 +53,7 @@ if [ $RETURN -eq 105 ]; then
 SELECTION=$(rofi -dmenu -p "Did you mean?" -i << EOF
 $CARDS
 EOF
-	 )
+)
 
 if [ -z "$SELECTION" ]; then
    # Nothing word - most likely an early exit
@@ -61,6 +61,15 @@ if [ -z "$SELECTION" ]; then
 fi
 
 CARDS=$($CARGO_SCRIPT_LOCATION/magic_finder $SELECTION)
+RETURN=$?
+
+## In this case - the selected closest word only has one option. See "Skuller" > "Sculler" for an example
+if [ $RETURN -eq 200 ]; then
+    sleep 0.05
+    # Not actually $CARDS in this case - it's just 1 card.
+    rofi -e "$CARDS"
+    exit
+fi
 
 SELECTION=$(rofi -dmenu -i << EOF
 $CARDS

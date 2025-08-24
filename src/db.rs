@@ -281,6 +281,10 @@ pub fn update_db_with_file(file: PathBuf) -> bool {
             continue;
         }
 
+        if card.card_faces.is_some() {
+            dbg!(&card);
+        }
+
         for word in card.name.split_whitespace() {
             let word = deunicode(&word.to_lowercase());
             let res = tx.execute(

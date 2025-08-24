@@ -228,11 +228,11 @@ cp build/rofi ~/bin
  * Optionally, put the Scryfall URI into the clipboard.
  * Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
  * Test the DbErrors stuff.
- * Misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
+ * For misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
  * Some kind of auto-magic direct link between the `ExitCode`s set out in `main.rs` and the `rofi` scripts. Currently I need to manually make sure they're the same between the `rust` code and the `sh` code. I think `build.rs` could do something like this.
-   I'm guessing would involve cargo build scripts (or just a find+replace?)
+   I'm guessing could involve cargo build.rs (or just a find+replace?)
  * Add more tests and improve the ones in `deser.rs`
- * Remove / Separate `deser.rs` into a seperate repo/module entirely. It could maybe be useful for others.
+ * Reduce `deser.rs` to only relevant key:value pairs or seperate into different repo/module entirely. It could maybe be useful for others.
    - Optionally/Alternatively delete the stuff in `deser.rs` that I don't use.
  * Fix all of the unchecked Results and deal with them (or just panic)
 
