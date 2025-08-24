@@ -1,5 +1,5 @@
 use deunicode::deunicode;
-use rusqlite::{params, params_from_iter, Connection};
+use rusqlite::{params, params_from_iter, Connection, Transaction};
 use std::cmp::Ordering;
 use std::fmt;
 use std::fs;
@@ -69,7 +69,6 @@ impl fmt::Display for DbCard {
         if let Some(l) = &self.loyalty {
             writeln!(f, "Starting Loyalty: {}", l)?
         }
-        writeln!(f, "Scryfall URI: {}", self.scryfall_uri)?;
         Ok(())
     }
 }
@@ -103,7 +102,8 @@ pub struct DbCard {
     pub power_toughness: Option<String>,
     pub loyalty: Option<String>,
     pub mana_cost: Option<String>,
-    pub scryfall_uri: String,
+    pub scryfall_uri: Option<String>,
+    pub other_side_name: Option<String>,
 }
 
 pub enum GetNameType {
@@ -116,11 +116,11 @@ pub fn get_card_by_name(name: &str, name_type: GetNameType) -> Option<DbCard> {
     let conn = Connection::open(sqlite_file).unwrap();
     let sql = match name_type {
         GetNameType::Name => {
-            "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri
+            "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_side_name
              FROM cards WHERE name = (?1)"
         }
         GetNameType::LowercaseName => {
-            "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri
+            "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_side_name
              FROM cards WHERE lowercase_name = (?1)"
         }
     };
@@ -135,6 +135,7 @@ pub fn get_card_by_name(name: &str, name_type: GetNameType) -> Option<DbCard> {
         loyalty: row.get(5).unwrap(),
         mana_cost: row.get(6).unwrap(),
         scryfall_uri: row.get(7).unwrap(),
+        other_side_name: row.get(8).unwrap(),
     })
 }
 
@@ -148,7 +149,7 @@ pub fn find_matching_cards_scryfall_style(search_strings: &[String]) -> Vec<DbCa
         search_string.insert(0, '%');
         percentaged_string.push(search_string);
     }
-    let mut sql: String = "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri
+    let mut sql: String = "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_side_name
              FROM cards WHERE".into();
     for i in 0..search_strings.len() {
         sql.push_str(&format!(" lowercase_name LIKE (?{}) AND", i + 1));
@@ -168,6 +169,7 @@ pub fn find_matching_cards_scryfall_style(search_strings: &[String]) -> Vec<DbCa
             loyalty: row.get(5).unwrap(),
             mana_cost: row.get(6).unwrap(),
             scryfall_uri: row.get(7).unwrap(),
+            other_side_name: row.get(8).unwrap(),
         })
     })
     .unwrap()
@@ -184,7 +186,7 @@ pub fn find_matching_cards(name: &str) -> Vec<DbCard> {
     name.insert(0, '%');
     let mut stmt = conn
         .prepare(
-            "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri
+            "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_side_name
              FROM cards WHERE lowercase_name LIKE (?1)",
         )
         .unwrap();
@@ -198,6 +200,7 @@ pub fn find_matching_cards(name: &str) -> Vec<DbCard> {
             loyalty: row.get(5).unwrap(),
             mana_cost: row.get(6).unwrap(),
             scryfall_uri: row.get(7).unwrap(),
+            other_side_name: row.get(8).unwrap(),
         })
     })
     .unwrap()
@@ -243,8 +246,12 @@ CREATE TABLE cards (
     power_toughness TEXT,
     loyalty TEXT,
     mana_cost TEXT,
-    scryfall_uri TEXT NOT NULL UNIQUE
+    scryfall_uri TEXT UNIQUE,
+    other_card_name TEXT DEFAULT NULL
 )";
+// Because of how Scryfall gives this to us, other_card_name can mean the other side of the
+//  card or the adventure part of the card
+//  God help me if there's a card with adventure and another side
 
 const CREATE_MAGIC_WORDS_TABLE_SQL: &str = "
 CREATE TABLE mtg_words (
@@ -265,6 +272,56 @@ pub fn init_db() {
         .unwrap();
 }
 
+fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
+    if card.name.contains("Sheoldred") {
+        dbg!(&card);
+    }
+    let card_faces = card.card_faces.as_ref().unwrap();
+    let first_face = card_faces.get(0).unwrap();
+    let second_face = card_faces.get(1).unwrap();
+
+    for word in card.name.split_whitespace() {
+        let word = deunicode(&word.to_lowercase());
+        let res = tx.execute(
+            "INSERT INTO mtg_words (word) VALUES (?1)
+                     ON CONFLICT (word) DO NOTHING;",
+            [word.replace(",", "")],
+        );
+    }
+    // TODO - deduplicate this function and the parent function
+    let lowercase_name = deunicode(&first_face.name.to_lowercase());
+    let power_toughness = match &first_face.power {
+        Some(p) => Some(format!("{}/{}", p, first_face.toughness.clone().unwrap())),
+        None => None,
+    };
+    let oracle_text = match first_face.oracle_text.clone() {
+        Some(ot) => ot,
+        None => "<No Oracle Text>".to_string(),
+    };
+    let res = tx.execute(
+            "INSERT INTO cards (name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, other_card_name, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            params![first_face.name, lowercase_name, first_face.type_line, oracle_text, power_toughness, first_face.loyalty, first_face.mana_cost, second_face.name, card.scryfall_uri],
+    );
+
+    let lowercase_name = deunicode(&second_face.name.to_lowercase());
+    let power_toughness = match &second_face.power {
+        Some(p) => Some(format!("{}/{}", p, second_face.toughness.clone().unwrap())),
+        None => None,
+    };
+    let oracle_text = match second_face.oracle_text.clone() {
+        Some(ot) => ot,
+        None => "<No Oracle Text>".to_string(),
+    };
+    let res = tx.execute(
+            "INSERT INTO cards (name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, other_card_name) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params![second_face.name, lowercase_name, second_face.type_line, oracle_text, power_toughness, second_face.loyalty, second_face.mana_cost, first_face.name],
+    );
+    if res.is_err() {
+        dbg!(res);
+        dbg!(card);
+    }
+}
+
 pub fn update_db_with_file(file: PathBuf) -> bool {
     let ac = fs::read_to_string(file).unwrap();
     let ac: Vec<ScryfallCard> = serde_json::from_str(&ac).unwrap();
@@ -282,7 +339,8 @@ pub fn update_db_with_file(file: PathBuf) -> bool {
         }
 
         if card.card_faces.is_some() {
-            dbg!(&card);
+            add_double_card(&tx, &card);
+            continue;
         }
 
         for word in card.name.split_whitespace() {
