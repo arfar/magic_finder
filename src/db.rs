@@ -116,11 +116,11 @@ pub fn get_card_by_name(name: &str, name_type: GetNameType) -> Option<DbCard> {
     let conn = Connection::open(sqlite_file).unwrap();
     let sql = match name_type {
         GetNameType::Name => {
-            "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_side_name
+            "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_card_name
              FROM cards WHERE name = (?1)"
         }
         GetNameType::LowercaseName => {
-            "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_side_name
+            "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_card_name
              FROM cards WHERE lowercase_name = (?1)"
         }
     };
@@ -149,7 +149,7 @@ pub fn find_matching_cards_scryfall_style(search_strings: &[String]) -> Vec<DbCa
         search_string.insert(0, '%');
         percentaged_string.push(search_string);
     }
-    let mut sql: String = "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_side_name
+    let mut sql: String = "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_card_name
              FROM cards WHERE".into();
     for i in 0..search_strings.len() {
         sql.push_str(&format!(" lowercase_name LIKE (?{}) AND", i + 1));
@@ -158,7 +158,9 @@ pub fn find_matching_cards_scryfall_style(search_strings: &[String]) -> Vec<DbCa
     sql.pop();
     sql.pop();
     sql.pop();
+    dbg!(&sql);
     let mut stmt = conn.prepare(&sql).unwrap();
+    dbg!(&stmt);
     stmt.query_map(params_from_iter(percentaged_string), |row| {
         Ok(DbCard {
             name: row.get(0).unwrap(),
@@ -186,7 +188,7 @@ pub fn find_matching_cards(name: &str) -> Vec<DbCard> {
     name.insert(0, '%');
     let mut stmt = conn
         .prepare(
-            "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_side_name
+            "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_card_name
              FROM cards WHERE lowercase_name LIKE (?1)",
         )
         .unwrap();
