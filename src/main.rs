@@ -17,14 +17,14 @@ impl Termination for MtgCardExit {
     fn report(self) -> ExitCode {
         match self {
             MtgCardExit::Success => ExitCode::SUCCESS,
-            MtgCardExit::EmptySearchString => ExitCode::from(101),
             MtgCardExit::NoExactMatchCard => ExitCode::from(102),
             MtgCardExit::DidYouMean => ExitCode::from(105),
             MtgCardExit::MultipleCardsMatch => ExitCode::from(106),
-            MtgCardExit::DbError => ExitCode::from(150),
-            MtgCardExit::ExactCardFound => ExitCode::from(200),
-            MtgCardExit::UpdateSuccess => ExitCode::from(201),
-            MtgCardExit::PrintedDatabaseFolder => ExitCode::from(250),
+            MtgCardExit::ExactCardFound => ExitCode::from(110),
+            MtgCardExit::UpdateSuccess => ExitCode::from(120),
+            MtgCardExit::PrintedDatabaseFolder => ExitCode::from(150),
+            MtgCardExit::DbError => ExitCode::from(201),
+            MtgCardExit::EmptySearchString => ExitCode::from(202),
         }
     }
 }

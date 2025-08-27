@@ -11,7 +11,7 @@ RETURN=$?
 #######################
 ## Exact card found - just print the card
 #######################
-if [ $RETURN -eq 200 ]; then
+if [ $RETURN -eq 110 ]; then
 
 rofi -e "$CARDS"
 
@@ -64,7 +64,7 @@ CARDS=$($CARGO_SCRIPT_LOCATION/magic_finder $SELECTION)
 RETURN=$?
 
 ## In this case - the selected closest word only has one option. See "Skuller" > "Sculler" for an example
-if [ $RETURN -eq 200 ]; then
+if [ $RETURN -eq 110 ]; then
     sleep 0.05
     # Not actually $CARDS in this case - it's just 1 card.
     rofi -e "$CARDS"
@@ -92,7 +92,7 @@ fi
 ###############################
 ## No seach string input at all
 ###############################
-if [ $RETURN -eq 101 ]; then
+if [ $RETURN -eq 202 ]; then
 
 rofi -e "No search string found"
 
