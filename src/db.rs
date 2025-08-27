@@ -133,19 +133,24 @@ pub fn get_card_by_name(name: &str, name_type: GetNameType) -> Option<DbCard> {
     })
 }
 
-pub fn find_matching_cards_scryfall_style(search_strings: &[String]) -> Vec<DbCard> {
-    assert!(!search_strings.is_empty());
-    let sqlite_file = get_local_data_sqlite_file();
-    let conn = Connection::open(sqlite_file).unwrap();
-    let mut percentaged_string = Vec::new();
+pub fn percentage_search_strings(search_strings: &[String]) -> Vec<String> {
+    let mut percentaged_search_strings = Vec::new();
     for mut search_string in search_strings.iter().cloned() {
         search_string.push('%');
         search_string.insert(0, '%');
-        percentaged_string.push(search_string);
+        percentaged_search_strings.push(search_string);
     }
+    percentaged_search_strings
+}
+
+pub fn find_matching_cards_scryfall_style(percentaged_search_strings: &[String]) -> Vec<DbCard> {
+    assert!(!percentaged_search_strings.is_empty());
+    let sqlite_file = get_local_data_sqlite_file();
+    let conn = Connection::open(sqlite_file).unwrap();
+
     let mut sql: String = "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_card_name
              FROM cards WHERE".into();
-    for i in 0..search_strings.len() {
+    for i in 0..percentaged_search_strings.len() {
         sql.push_str(&format!(" lowercase_name LIKE (?{}) AND", i + 1));
     }
     sql.pop();
@@ -155,7 +160,7 @@ pub fn find_matching_cards_scryfall_style(search_strings: &[String]) -> Vec<DbCa
     dbg!(&sql);
     let mut stmt = conn.prepare(&sql).unwrap();
     dbg!(&stmt);
-    stmt.query_map(params_from_iter(percentaged_string), |row| {
+    stmt.query_map(params_from_iter(percentaged_search_strings), |row| {
         Ok(DbCard {
             name: row.get(0).unwrap(),
             lowercase_name: row.get(1).unwrap(),
