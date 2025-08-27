@@ -223,7 +223,8 @@ cp build/rofi ~/bin
    - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
 
 ## TODO / FIXME / BUGS / Code improvements
- * Display both sides of a doubleside card
+ * Do some kind of "Display All" kind of thing
+   For example, searching "Tezzeret" gives a bunch of cards and I'm not sure which one I want (other than probably the type - but there's still a bunch of Planeswalkers)
  * Figure out (if possible) to make the Scryfall URI (L?) clickable in `rofi`.
  * Optionally, put the Scryfall URI into the clipboard.
  * Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
