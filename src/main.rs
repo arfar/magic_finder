@@ -1,18 +1,18 @@
 use clap::Parser;
 use magic_finder::check_db_exists_and_populated;
-use magic_finder::find_matching_cards_scryfall_style;
-use magic_finder::get_all_mtg_words;
 use magic_finder::get_card_by_name;
 use magic_finder::get_local_data_folder;
 use magic_finder::init_db;
+use magic_finder::print_card;
+use magic_finder::try_match_card;
 use magic_finder::update_db_with_file;
-use magic_finder::DbCard;
+use magic_finder::CardMatchResult;
 use magic_finder::DbExistanceErrors;
 use magic_finder::GetNameType;
 use std::path::PathBuf;
 use std::process::ExitCode;
+
 use std::process::Termination;
-use textdistance::str::damerau_levenshtein;
 
 impl Termination for MtgCardExit {
     fn report(self) -> ExitCode {
@@ -42,28 +42,6 @@ enum MtgCardExit {
     PrintedDatabaseFolder,
 }
 
-enum CardMatchResult {
-    DidYouMean(Vec<String>),
-    MultipleCardsMatch(Vec<DbCard>),
-    ExactCardFound(DbCard),
-}
-
-fn try_match_card(search_text: &Vec<String>) -> CardMatchResult {
-    let mut matching_cards = find_matching_cards_scryfall_style(search_text);
-
-    if matching_cards.is_empty() {
-        let close_names = find_magic_words_with_close_spelling(search_text);
-        let (_, close_card_names): (Vec<usize>, Vec<String>) = close_names.into_iter().unzip();
-        CardMatchResult::DidYouMean(close_card_names)
-    } else if matching_cards.len() == 1 {
-        let card = get_card_by_name(&matching_cards[0].name, GetNameType::Name).unwrap();
-        CardMatchResult::ExactCardFound(card)
-    } else {
-        matching_cards.sort();
-        CardMatchResult::MultipleCardsMatch(matching_cards)
-    }
-}
-
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
@@ -80,15 +58,6 @@ struct Args {
     search_text: Vec<String>,
 }
 
-fn print_card(card: &DbCard) {
-    println!("{}", card);
-    if let Some(oc) = &card.other_card_name {
-        println!("----------------------------");
-        let card = get_card_by_name(&oc, GetNameType::Name).unwrap();
-        println!("{}", card);
-    }
-}
-
 fn exact_search(search_strings: Vec<String>) -> MtgCardExit {
     let search_string = search_strings.join(" ");
     let card = get_card_by_name(&search_string, GetNameType::Name);
@@ -102,21 +71,6 @@ fn exact_search(search_strings: Vec<String>) -> MtgCardExit {
             MtgCardExit::ExactCardFound
         }
     }
-}
-
-fn find_magic_words_with_close_spelling(search_text: &Vec<String>) -> Vec<(usize, String)> {
-    let mtg_words = get_all_mtg_words();
-    let mut close_names = Vec::new();
-    for search_string in search_text {
-        for mtg_card_name in &mtg_words {
-            let dist = damerau_levenshtein(&search_string, mtg_card_name);
-            if dist <= 2 {
-                close_names.push((dist, mtg_card_name.clone()));
-            }
-        }
-    }
-    close_names.sort_by_key(|k| k.0);
-    close_names
 }
 
 fn main() -> MtgCardExit {
