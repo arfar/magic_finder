@@ -2,7 +2,7 @@
 
 A quick way to search up Magic the Gathering (TM) cards for Linux (maybe MacOS? Don't have one, so haven't tried).
 
-Scroll down to see how this works (with the optional `rofi` integration`). Currently, no images are displayed - so don't go into this expecting that.
+Scroll down to see how this works (with the optional `rofi` integration). Currently, no images are displayed - so don't go into this expecting that.
 
 ## The Components
 
@@ -223,7 +223,7 @@ cp build/rofi ~/bin
    - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
 
 ## TODO / FIXME / BUGS / Code improvements
- * Do some kind of "Display All" kind of thing
+ * Do some kind of "Display All" kind of thing.
    For example, searching "Tezzeret" gives a bunch of cards and I'm not sure which one I want (other than probably the type - but there's still a bunch of Planeswalkers)
  * Figure out (if possible) to make the Scryfall URI (L?) clickable in `rofi`.
  * Optionally, put the Scryfall URI into the clipboard.
