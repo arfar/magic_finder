@@ -18,7 +18,7 @@ pub fn get_local_data_folder() -> PathBuf {
     }
 }
 
-fn get_local_data_sqlite_file() -> PathBuf {
+pub fn get_local_data_sqlite_file() -> PathBuf {
     let mut folder = get_local_data_folder();
     folder.push(SQLITE_FILENAME);
     folder

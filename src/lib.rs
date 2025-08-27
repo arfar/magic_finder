@@ -9,4 +9,4 @@ pub use db::{
 };
 
 mod utils;
-pub use utils::{create_local_data_folder, get_local_data_folder};
+pub use utils::{create_local_data_folder, get_local_data_folder, get_local_data_sqlite_file};

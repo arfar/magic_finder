@@ -6,13 +6,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use super::deser::{ScryfallCard, SetType};
-use super::utils::{create_local_data_folder, get_local_data_folder, SQLITE_FILENAME};
-
-fn get_local_data_sqlite_file() -> PathBuf {
-    let mut folder = get_local_data_folder();
-    folder.push(SQLITE_FILENAME);
-    folder
-}
+use super::utils::{create_local_data_folder, get_local_data_sqlite_file};
 
 pub fn get_all_card_names() -> Vec<String> {
     let sqlite_file = get_local_data_sqlite_file();
