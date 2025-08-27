@@ -54,20 +54,20 @@ pub fn get_all_mtg_words() -> Vec<String> {
 impl fmt::Display for DbCard {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.mana_cost {
-            Some(mc) => writeln!(f, "{}\t{}", self.name, mc)?,
-            None => writeln!(f, "{}", self.name)?,
+            Some(mc) => write!(f, "{}\t{}", self.name, mc)?,
+            None => write!(f, "{}", self.name)?,
         }
-        writeln!(f, "{}", self.type_line)?;
+        write!(f, "\n{}", self.type_line)?;
         if let Some(ot) = &self.oracle_text {
-            writeln!(f, "{}", ot)?
+            write!(f, "\n{}", ot)?
         }
 
         if let Some(pt) = &self.power_toughness {
-            writeln!(f, "{}", pt)?
+            write!(f, "\n{}", pt)?
         }
 
         if let Some(l) = &self.loyalty {
-            writeln!(f, "Starting Loyalty: {}", l)?
+            write!(f, "\nStarting Loyalty: {}", l)?
         }
         Ok(())
     }
@@ -103,7 +103,7 @@ pub struct DbCard {
     pub loyalty: Option<String>,
     pub mana_cost: Option<String>,
     pub scryfall_uri: Option<String>,
-    pub other_side_name: Option<String>,
+    pub other_card_name: Option<String>,
 }
 
 pub enum GetNameType {
@@ -135,7 +135,7 @@ pub fn get_card_by_name(name: &str, name_type: GetNameType) -> Option<DbCard> {
         loyalty: row.get(5).unwrap(),
         mana_cost: row.get(6).unwrap(),
         scryfall_uri: row.get(7).unwrap(),
-        other_side_name: row.get(8).unwrap(),
+        other_card_name: row.get(8).unwrap(),
     })
 }
 
@@ -171,7 +171,7 @@ pub fn find_matching_cards_scryfall_style(search_strings: &[String]) -> Vec<DbCa
             loyalty: row.get(5).unwrap(),
             mana_cost: row.get(6).unwrap(),
             scryfall_uri: row.get(7).unwrap(),
-            other_side_name: row.get(8).unwrap(),
+            other_card_name: row.get(8).unwrap(),
         })
     })
     .unwrap()
@@ -202,7 +202,7 @@ pub fn find_matching_cards(name: &str) -> Vec<DbCard> {
             loyalty: row.get(5).unwrap(),
             mana_cost: row.get(6).unwrap(),
             scryfall_uri: row.get(7).unwrap(),
-            other_side_name: row.get(8).unwrap(),
+            other_card_name: row.get(8).unwrap(),
         })
     })
     .unwrap()

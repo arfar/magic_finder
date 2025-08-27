@@ -6,6 +6,7 @@ use magic_finder::get_card_by_name;
 use magic_finder::get_local_data_folder;
 use magic_finder::init_db;
 use magic_finder::update_db_with_file;
+use magic_finder::DbCard;
 use magic_finder::DbExistanceErrors;
 use magic_finder::GetNameType;
 use std::path::PathBuf;
@@ -57,6 +58,15 @@ struct Args {
     search_text: Vec<String>,
 }
 
+fn print_card(card: &DbCard) {
+    println!("{}", card);
+    if let Some(oc) = &card.other_card_name {
+        println!("----------------------------");
+        let card = get_card_by_name(&oc, GetNameType::Name).unwrap();
+        println!("{}", card);
+    }
+}
+
 fn exact_search(search_strings: Vec<String>) -> MtgCardExit {
     let search_string = search_strings.join(" ");
     let card = get_card_by_name(&search_string, GetNameType::Name);
@@ -66,7 +76,7 @@ fn exact_search(search_strings: Vec<String>) -> MtgCardExit {
             MtgCardExit::NoExactMatchCard
         }
         Some(c) => {
-            println!("{}", c);
+            print_card(&c);
             MtgCardExit::ExactCardFound
         }
     }
@@ -133,7 +143,7 @@ fn main() -> MtgCardExit {
         MtgCardExit::DidYouMean
     } else if matching_cards.len() == 1 {
         let card = get_card_by_name(&matching_cards[0].name, GetNameType::Name).unwrap();
-        println!("{}", card);
+        print_card(&card);
         MtgCardExit::ExactCardFound
     } else {
         matching_cards.sort();
