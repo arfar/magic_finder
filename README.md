@@ -223,6 +223,8 @@ cp build/rofi ~/bin
    - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
 
 ## TODO / FIXME / BUGS / Code improvements
+ * Word correction doesn't work if 1 word is spelled correctly
+   - for example, try searching "epser origins" and you'll get questions about how to spell "origins" (which is correct) first rather than the actually incorrect word
  * Do some kind of "Display All" kind of thing.
    For example, searching "Tezzeret" gives a bunch of cards and I'm not sure which one I want (other than probably the type - but there's still a bunch of Planeswalkers)
  * Figure out (if possible) to make the Scryfall URI (L?) clickable in `rofi`.
