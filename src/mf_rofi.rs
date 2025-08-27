@@ -1,6 +1,8 @@
+use magic_finder::get_card_by_name;
 use magic_finder::try_match_card;
 use magic_finder::CardMatchResult;
 use magic_finder::DbCard;
+use magic_finder::GetNameType;
 use std::io::ErrorKind;
 use std::process::Command;
 
@@ -25,8 +27,12 @@ fn initial_rofi() -> String {
 
 fn rofi_print_card(card: DbCard) {
     let display_string = match card.other_card_name {
-        Some(c) => {
-            todo!()
+        Some(ref c) => {
+            let mut display_string = String::new();
+            display_string.push_str(&card.to_string());
+            let other_card = get_card_by_name(&c, GetNameType::Name).unwrap();
+            display_string.push_str(&other_card.to_string());
+            display_string
         }
         None => card.to_string(),
     };
