@@ -8,8 +8,8 @@ Scroll down to see how this works (with the optional `rofi` integration). Curren
 
 This repo has 2 main parts to it:
 
- * The `magic_finder_cli` is a command line interface for searching through cards without any GUI.
- * The `magic_finder_rofi` uses [`rofi`](https://github.com/davatorium/rofi) to add some GUI stuff.
+ * `magic_finder_cli` is a command line interface for searching through cards without any GUI.
+ * `magic_finder_rofi` uses [`rofi`](https://github.com/davatorium/rofi) to add some GUI stuff.
 
 ## Requirements
 
