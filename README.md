@@ -91,7 +91,7 @@ I am sorry in advance, this is a bit of a pain becuase of my lack of knowledge o
 
 You will need `rust`, so please install that before you start. Follow the insrtructions [here](https://www.rust-lang.org/tools/install).
 
-#### Install the `magic_finder` binary
+#### Install the `magic_finder` binaries
 
 Clone this repo and move into the directory using something like
 
@@ -108,45 +108,6 @@ cargo install --path .
 
 Hopefully `cargo` has installed this somewhere that's already in `$PATH` and you should now already be able to use the binary. Run `magic_finder --help` to test.
 
-##### Install the `rofi` scripts (optional)
-
-Install `rofi` with a version > 1.76 first. As of writing, you can't simply do `sudo apt install rofi` for Ubuntu - see the section below about how to compile and install `rofi` locally. 
-
-This is the slightly harder part. You need to put these scripts somewhere in `$PATH` (I put them in the same place that `cargo` installed the binary by default).
-
-For me, an easy and logical-ish place was the same place that the `magic_finder` binary was installed. Run the following to check:
-
-```
-which magic_finder # gives /home/<USER>/.cargo/bin/magic_finder for me
-```
-
-So given the above output, `$HOME/.cargo/bin` is the folder I want to use for installing these scripts. I know it's not a cargo binary - but this should be a location that is in `$PATH` already, and it's "local" to the binary itself too.
-
-**THIS IS THE MOST PAINFUL PART** - you need to manually edit the `CARGO_SCRIPT_LOCATION` variable in each of the files in the `scripts/` folder. The deafult is *probably* correct with `$HOME/.cargo/bin`, but if that's not in your `$PATH`, you will need to change that. So change all of the files if needed.
-
-Then "install" the scripts by copying them all from the `magic_finder/scripts` folder and put them in that same `CARGO_SCRIPT_LOCATION` folder. It's probably the following command if you're still in the `magic_finder` folder. That's what I use with default rust/cargo settings/setup.
-
-```
-cp scripts/* $HOME/.cargo/bin/
-```
-
-With that all sorted, you should try test it out! Presuming you've already `magic_finder` and it's working, try running `magic_finder_update_with_rofi.sh`. This should give you a file browser. Exit using <Ctrl+g> or <Esc>. If so, then scripts are working!
-
-
-##### All In One
-With rust basic defaults, the following might just work for you... (it does for me)
-```
-git clone https://github.com/arfar/magic_finder
-cd magic_finder
-cargo install --path .
-cp scripts/* $HOME/.cargo/bin
-```
-Then test by opening a terminal window then running
-```
-magic_finder --help
-magic_finder_search_with_rofi.sh
-```
-
 #### Install Shortcut
 I use Ubuntu and the real helpfulness of this script is the ability to call this from a quick keyboard shortcut. The `magic_finder_search_with_rofi.sh` script is for use with a keyboard shortcut. Do whatever works with your OS, but for me on Ubuntu, I went to the `Settings` application. Then `Keyboard` > `Keyboard Shortcuts` > `Custom Shortcuts` > `+`. When adding the shortcut, provide it the location of the script (probably `$HOME/.cargo/bin/magic_finder_search_with_rofi.sh`) and the key binding (`SUPER + s` for me).
 
@@ -155,7 +116,7 @@ With this set up, pressing `SUPER + s` will provide a basic `dmenu`-esque `rofi`
 ### Once You Install and Updating the Database
 Go to the [Scryfall Bulk Download](https://scryfall.com/docs/api/bulk-data) page and download the Oracle Cards file. Should be 150MB-ish.
 
-If you're using `rofi` then use `magic_finder_update_with_rofi.sh` to find the file, or use `magic_finder --update <LOCATION_OF_FILE>` where `<LOCATION_OF_FILE>` is where you downloaded the file to. From there, it should Just Work (TM). If not, try updating this repo. If it still doesn't work, log a ticket. It's probably going to something with Scryfall updating their schema that I haven't accounted for. Alternatively, run `COMMAND --update <path to file>` where `<path to file>` is the full path to where you downloaded the file.
+If you're using `rofi` then use `magic_finder_update_with_rofi.sh` to find the file, or use `magic_finder_cli --update <LOCATION_OF_FILE>` where `<LOCATION_OF_FILE>` is where you downloaded the file to. From there, it should Just Work (TM). If not, try updating this repo. If it still doesn't work, log a ticket. It's probably going to something with Scryfall updating their schema that I haven't accounted for. Alternatively, run `COMMAND --update <path to file>` where `<path to file>` is the full path to where you downloaded the file.
 
 NOTE: Updating *will* delete the previous db - that shouldn't be a problem though, because you shouldn't use that unless you really know what you're doing.
 
@@ -169,9 +130,7 @@ magic_finder --database-folder
 
 Delete the whole folder that is output from that command. It's probably somewhere like `$HOME/.local/share/magic_finder/`.
 
-The binary and scripts should be in the folder when you run `which magic_finder`. Delete all files that start with `magic_finder`.
-
-Optioanally, from within the `magic_finder` folder, run `cargo uninstall`. This will remove the binary and it should tell you where that was. Hopefully the scripts are in the same place, so go to that folder and delete the remainder of the files that start with `magic_finder`.
+From within the `magic_finder` folder, run `cargo uninstall`. This will remove the binaries.
  
 ## Why this exists
 

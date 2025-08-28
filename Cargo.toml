@@ -18,7 +18,7 @@ uuid = { version = "1.12.1", features = ["v4", "serde"] }
 
 [[bin]]
 name = "magic_finder_cli"
-path = "src/main.rs"
+path = "src/mf_cli.rs"
 
 [[bin]]
 name = "magic_finder_rofi"
