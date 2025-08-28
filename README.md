@@ -8,20 +8,16 @@ Scroll down to see how this works (with the optional `rofi` integration). Curren
 
 This repo has 2 main parts to it:
 
- * The `magic_finder` rust code, which does the "heavy lifting" of updating a database, searching through it for cards, and finding close names (kind of)
- * The supporting scripts which use [`rofi`](https://github.com/davatorium/rofi)
- 
-`magic_finder` can be used without the rofi parts if you wanted a command for showing basic mtg card info from the CLI.
+ * The `magic_finder_cli` is a command line interface for searching through cards without any GUI.
+ * The `magic_finder_rofi` uses [`rofi`](https://github.com/davatorium/rofi) to add some GUI stuff.
 
-The `rofi` part is so that I can quickly and easily get the card info I want. Basically just adds a very simple and easy GUI to the `magic_finder` part. I've written 2 wrapper scripts to enable this.
- 
 ## Requirements
 
 ### Magic Finder
-`magic_finder` is written in rust. Check the Cargo.toml file for more specific requirements. I was compiling with rustc version 1.88, but I would not at all be surprised if it worked on rust from year(s) ago.
+`magic_finder_cli` is written in rust (as is `magic_finder_rofi`). I was compiling with rustc version 1.88, but I would not at all be surprised if it worked on rust from year(s) ago.
  
 ### `rofi`
-The rofi scripts require a version that can set the `command` setting on the `filebrowser` option. From what I can tell, this was introduced in 1.7.6, so you'll need a version at or above this.
+`magic_finder_rofi` requires a version that can set the `command` setting on the `filebrowser` option. From what I can tell, this was introduced in 1.7.6, so you'll need a version at or above this.
 
 Very annoyingly, the Ubuntu repos do *not* have this version. They have an earlier version. So, to use this, you'll need to get a more recent version yourself. I compiled and installed myself. See the end of this README for how I did that.
 
@@ -29,7 +25,7 @@ I think `rofi` only works with Linux, maybe on MacOS, almost certainly not on Wi
 
 ## Example Usage (with `rofi`)
 
-Let's try find Black Lotus, but we did a typo. Run the `magic_finder_search_with_rofi.sh` script and input your typo.
+Let's try find Black Lotus, but we did a typo. Run the `magic_finder_rofi` binary and input your typo.
 
 ![search with typo](images/first.png)
 
@@ -49,26 +45,26 @@ And finally hit enter or double click on the card you want to get the output you
 
 ![black lotus output](images/black_lotus_card.png)
 
-### Example Usage Without Rofi
+## Example Usage Without Rofi
 
 I have not coded any sort of similar "interactive" mode for the `magic_finder` tool itself. As such, you'll need to do the same steps yourself, but manually and without interactive search.
 
 ```
-$ magic_finder blakc
+$ magic_finder_cli blakc
 black
 blast
 ... <SNIP> ...
 ```
 
 ```
-$ magic_finder black
+$ magic_finder_cli black
 Argivian Blacksmith
 Ballad of the Black Flag
 ... <SNIP> ...
 ```
 
 ```
-$ magic_finder --exact Black Lotus
+$ magic_finder_cli --exact Black Lotus
 Black Lotus	{0}
 Artifact
 {T}, Sacrifice this artifact: Add three mana of any one color.
@@ -78,7 +74,7 @@ Scryfall URI: https://scryfall.com/card/vma/4/black-lotus?utm_source=api
 Without exact, this tool will imitate Scryfall search and search for each individual word in the card.
 
 ```
-$ magic_finder Black Lotus
+$ magic_finder_cli Black Lotus
 Black Lotus
 Black Lotus Lounge
 Blacker Lotus
@@ -86,10 +82,8 @@ Blacker Lotus
 
 ## Installation, First Usage, and Updating
 
-### Installation
-I am sorry in advance, this is a bit of a pain becuase of my lack of knowledge on how to properly "package" scripts alongside a rust binary.
-
-You will need `rust`, so please install that before you start. Follow the insrtructions [here](https://www.rust-lang.org/tools/install).
+### Requrements for Installation
+You will at least need `rust`, so please install that before you start. Follow the insrtructions [here](https://www.rust-lang.org/tools/install).
 
 #### Install the `magic_finder` binaries
 
@@ -108,15 +102,28 @@ cargo install --path .
 
 Hopefully `cargo` has installed this somewhere that's already in `$PATH` and you should now already be able to use the binary. Run `magic_finder --help` to test.
 
+#### Install `rofi` (optional, but preferable)
+You will need a rofi version above 1.7.6.
+
+Very annoyingly, the Ubuntu repos (as of mid 2025) do not have this version. They have an earlier version. So, to use this, you'll need to get a more recent version yourself. I compiled and installed myself. See the end of this README for how I did that.
+
+I think rofi only works with Linux, maybe on MacOS, almost certainly not on Windows. For quick desktop-based search, you'll need to run Linux (or maybe MacOS). I haven't tested MacOS because I don't have access to a machine that runs it.
+
 #### Install Shortcut
-I use Ubuntu and the real helpfulness of this script is the ability to call this from a quick keyboard shortcut. The `magic_finder_search_with_rofi.sh` script is for use with a keyboard shortcut. Do whatever works with your OS, but for me on Ubuntu, I went to the `Settings` application. Then `Keyboard` > `Keyboard Shortcuts` > `Custom Shortcuts` > `+`. When adding the shortcut, provide it the location of the script (probably `$HOME/.cargo/bin/magic_finder_search_with_rofi.sh`) and the key binding (`SUPER + s` for me).
+The real helpfulness of this tool is the ability to call this from a quick keyboard shortcut. The `magic_finder_rofi` binary is for use with a keyboard shortcut. Do whatever works with your OS.
+
+For me on Ubuntu, I went to the `Settings` application. Then `Keyboard` > `Keyboard Shortcuts` > `Custom Shortcuts` > `+`. When adding the shortcut, provide it the location of the installed binaries (probably `$HOME/.cargo/bin/magic_finder_rofi`) and the key binding (`SUPER + s` for me).
 
 With this set up, pressing `SUPER + s` will provide a basic `dmenu`-esque `rofi` menu where you type the card you're looking for - and you should just be off.
 
 ### Once You Install and Updating the Database
 Go to the [Scryfall Bulk Download](https://scryfall.com/docs/api/bulk-data) page and download the Oracle Cards file. Should be 150MB-ish.
 
-If you're using `rofi` then use `magic_finder_update_with_rofi.sh` to find the file, or use `magic_finder_cli --update <LOCATION_OF_FILE>` where `<LOCATION_OF_FILE>` is where you downloaded the file to. From there, it should Just Work (TM). If not, try updating this repo. If it still doesn't work, log a ticket. It's probably going to something with Scryfall updating their schema that I haven't accounted for. Alternatively, run `COMMAND --update <path to file>` where `<path to file>` is the full path to where you downloaded the file.
+Use either:
+ * `magic_finder_rofi --update` and navigate to your Oracle Cards file, or
+ * `magic_finder_cli --update <LOCATION_OF_FILE>` where `<LOCATION_OF_FILE>` is where you downloaded the file to.
+ 
+From there, it should Just Work (TM). If not, try updating this repo. If it still doesn't work, log a ticket. It's probably going to something with Scryfall updating their schema that I haven't accounted for.
 
 NOTE: Updating *will* delete the previous db - that shouldn't be a problem though, because you shouldn't use that unless you really know what you're doing.
 
@@ -125,12 +132,12 @@ NOTE: Updating *will* delete the previous db - that shouldn't be a problem thoug
 Firstly, find where the database is installed using the following.
 
 ```
-magic_finder --database-folder
+magic_finder_cli --database-folder
 ```
 
 Delete the whole folder that is output from that command. It's probably somewhere like `$HOME/.local/share/magic_finder/`.
 
-From within the `magic_finder` folder, run `cargo uninstall`. This will remove the binaries.
+From within this `magic_finder` repo folder, run `cargo uninstall`. This will remove the binaries.
  
 ## Why this exists
 
@@ -191,7 +198,6 @@ cp build/rofi ~/bin
  * Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
  * Test the DbErrors stuff.
  * For misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
- * Some kind of auto-magic direct link between the `ExitCode`s set out in `main.rs` and the `rofi` scripts. Currently I need to manually make sure they're the same between the `rust` code and the `sh` code. I think `build.rs` could do something like this.
    I'm guessing could involve cargo build.rs (or just a find+replace?)
  * Add more tests and improve the ones in `deser.rs`
  * Reduce `deser.rs` to only relevant key:value pairs or seperate into different repo/module entirely. It could maybe be useful for others.
