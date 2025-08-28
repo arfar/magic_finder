@@ -1,10 +1,14 @@
 use magic_finder::get_card_by_name;
+use magic_finder::init_db;
 use magic_finder::try_match_card;
+use magic_finder::update_db_with_file;
 use magic_finder::CardMatchResult;
 use magic_finder::DbCard;
 use magic_finder::GetNameType;
+use std::env;
 use std::io::ErrorKind;
 use std::io::Write;
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 fn initial_rofi() -> String {
@@ -81,7 +85,39 @@ fn rofi_select_from_multiple_cards(cards: Vec<DbCard>) -> String {
     output.to_string()
 }
 
+fn rofi_get_filename() -> String {
+    let output = Command::new("rofi")
+        .args(["-modi", "filebrowser"])
+        .args(["-show", "filebrowser"])
+        .args(["-filebrowser-command", "printf"])
+        .output();
+    match output {
+        Ok(ref out) => {
+            // TODO - figure out why a clone is needed here - why does this function need to own it?
+            let output = String::from_utf8(out.stdout.clone()).unwrap();
+            return output;
+        }
+        Err(e) => match e.kind() {
+            ErrorKind::NotFound => panic!("Can't find rofi - did you install it?"),
+            _ => panic!("Error not accounted for: {:?}", e),
+        },
+    }
+}
+
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    if args.len() > 1 {
+        if args.len() == 2 && args[1] == "--update" {
+            let filename = rofi_get_filename();
+            init_db();
+            update_db_with_file(PathBuf::from(filename));
+            println!("Your database should be updated now");
+            return;
+        } else {
+            panic!("You've given an argument or arguments that aren't supported. Only --update is supported");
+        }
+    }
+
     let search_text = initial_rofi();
 
     // TODO - do a nice little "rofi_print_error" function to do this
