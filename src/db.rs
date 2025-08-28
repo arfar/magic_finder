@@ -157,9 +157,7 @@ pub fn find_matching_cards_scryfall_style(percentaged_search_strings: &[String])
     sql.pop();
     sql.pop();
     sql.pop();
-    //dbg!(&sql);
     let mut stmt = conn.prepare(&sql).unwrap();
-    //dbg!(&stmt);
     stmt.query_map(params_from_iter(percentaged_search_strings), |row| {
         Ok(DbCard {
             name: row.get(0).unwrap(),
@@ -275,7 +273,7 @@ pub fn init_db() {
 
 fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
     let card_faces = card.card_faces.as_ref().unwrap();
-    let first_face = card_faces.get(0).unwrap();
+    let first_face = card_faces.first().unwrap();
     let second_face = card_faces.get(1).unwrap();
 
     for word in card.name.split_whitespace() {
@@ -292,10 +290,10 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
     }
     // TODO - deduplicate this function and the parent function
     let lowercase_name = deunicode(&first_face.name.to_lowercase());
-    let power_toughness = match &first_face.power {
-        Some(p) => Some(format!("{}/{}", p, first_face.toughness.clone().unwrap())),
-        None => None,
-    };
+    let power_toughness = first_face
+        .power
+        .as_ref()
+        .map(|p| format!("{}/{}", p, first_face.toughness.clone().unwrap()));
     let oracle_text = match first_face.oracle_text.clone() {
         Some(ot) => ot,
         None => "<No Oracle Text>".to_string(),
@@ -310,10 +308,10 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
     }
 
     let lowercase_name = deunicode(&second_face.name.to_lowercase());
-    let power_toughness = match &second_face.power {
-        Some(p) => Some(format!("{}/{}", p, second_face.toughness.clone().unwrap())),
-        None => None,
-    };
+    let power_toughness = second_face
+        .power
+        .as_ref()
+        .map(|p| format!("{}/{}", p, second_face.toughness.clone().unwrap()));
     let oracle_text = match second_face.oracle_text.clone() {
         Some(ot) => ot,
         None => "<No Oracle Text>".to_string(),

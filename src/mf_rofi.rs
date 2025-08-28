@@ -19,9 +19,8 @@ fn initial_rofi() -> String {
         .output();
     match output {
         Ok(ref out) => {
-            // TODO - figure out why a clone is needed here - why does this function need to own it?
-            let output = String::from_utf8(out.stdout.clone()).unwrap();
-            return output;
+            // TODO - figure out why a clone is needed here
+            String::from_utf8(out.stdout.clone()).unwrap()
         }
         Err(e) => match e.kind() {
             ErrorKind::NotFound => panic!("Can't find rofi - did you install it?"),
@@ -35,7 +34,7 @@ fn rofi_print_card(card: &DbCard) {
         Some(ref c) => {
             let mut display_string = String::new();
             display_string.push_str(&card.to_string());
-            let other_card = get_card_by_name(&c, GetNameType::Name).unwrap();
+            let other_card = get_card_by_name(c, GetNameType::Name).unwrap();
             display_string.push_str(&other_card.to_string());
             display_string
         }
@@ -44,7 +43,7 @@ fn rofi_print_card(card: &DbCard) {
     let _ = Command::new("rofi").args(["-e", &display_string]).output();
 }
 
-fn rofi_show_did_you_mean(magic_words: &Vec<String>) -> String {
+fn rofi_show_did_you_mean(magic_words: &[String]) -> String {
     let magic_words_as_one_string = magic_words.join("\n");
     let mut child = Command::new("rofi")
         .arg("-dmenu")
@@ -94,8 +93,7 @@ fn rofi_get_filename() -> String {
     match output {
         Ok(ref out) => {
             // TODO - figure out why a clone is needed here - why does this function need to own it?
-            let output = String::from_utf8(out.stdout.clone()).unwrap();
-            return output;
+            String::from_utf8(out.stdout.clone()).unwrap()
         }
         Err(e) => match e.kind() {
             ErrorKind::NotFound => panic!("Can't find rofi - did you install it?"),
@@ -132,16 +130,14 @@ fn main() {
     let card_search_result = try_match_card(&search_text_words);
     match card_search_result {
         CardMatchResult::DidYouMean(magic_words) => {
-            let did_you_mean_word = rofi_show_did_you_mean(&magic_words);
-            let mut did_you_mean_word_in_vec = Vec::new();
-            did_you_mean_word_in_vec.push(did_you_mean_word);
-            let card_search_result = try_match_card(&did_you_mean_word_in_vec);
+            let did_you_mean_word = vec![rofi_show_did_you_mean(&magic_words)];
+            let card_search_result = try_match_card(&did_you_mean_word);
             match card_search_result {
                 // This code is a bit of a double up of next codebock
                 CardMatchResult::DidYouMean(_) => {
                     unreachable!(
                         "This tool suggested the string \"{}\" but couldn't find this word in any card - there's a problem",
-                        did_you_mean_word_in_vec[0]
+                        did_you_mean_word.first().unwrap()
                     );
                 }
                 CardMatchResult::MultipleCardsMatch(cards) => {

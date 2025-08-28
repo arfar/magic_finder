@@ -25,7 +25,7 @@ pub fn find_magic_words_with_close_spelling(search_text: &Vec<String>) -> Vec<(u
     let mut close_names = Vec::new();
     for search_string in search_text {
         for mtg_card_name in &mtg_words {
-            let dist = damerau_levenshtein(&search_string, mtg_card_name);
+            let dist = damerau_levenshtein(search_string, mtg_card_name);
             if dist <= 2 {
                 close_names.push((dist, mtg_card_name.clone()));
             }
@@ -56,7 +56,7 @@ pub fn print_card(card: &DbCard) {
     println!("{}", card);
     if let Some(oc) = &card.other_card_name {
         println!("----------------------------");
-        let card = get_card_by_name(&oc, GetNameType::Name).unwrap();
+        let card = get_card_by_name(oc, GetNameType::Name).unwrap();
         println!("{}", card);
     }
 }
