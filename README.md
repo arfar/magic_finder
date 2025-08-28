@@ -1,8 +1,8 @@
 # Magic Finder
 
-A quick way to search up Magic the Gathering (TM) cards for Linux (maybe MacOS? Don't have one, so haven't tried).
+A quick way to search up Magic the Gathering (TM) cards for Linux (and maybe MacOS).
 
-Scroll down to see how this works (with the optional `rofi` integration). Currently, no images are displayed - so don't go into this expecting that.
+Scroll down to see how this works (with the optional `rofi` integration). No images are displayed - so don't go into this expecting that.
 
 ## The Components
 
@@ -14,14 +14,14 @@ This repo has 2 main parts to it:
 ## Requirements
 
 ### Magic Finder
-`magic_finder_cli` is written in rust (as is `magic_finder_rofi`). I was compiling with rustc version 1.88, but I would not at all be surprised if it worked on rust from year(s) ago.
+`magic_finder` is written in [rust](https://www.rust-lang.org/tools/install) and, as far as I know, is the only pre-requesite for insalling this. I was compiling with `rustc` version 1.88, but I would not at all be surprised if it worked on rust from year(s) ago.
  
 ### `rofi`
-`magic_finder_rofi` requires a version that can set the `command` setting on the `filebrowser` option. From what I can tell, this was introduced in 1.7.6, so you'll need a version at or above this.
+`magic_finder_rofi` requires a `rofi` version that can set the `command` setting on the `filebrowser` option. From what I can tell, this was introduced in 1.7.6, so you'll need a version at or above this.
 
 Very annoyingly, the Ubuntu repos do *not* have this version. They have an earlier version. So, to use this, you'll need to get a more recent version yourself. I compiled and installed myself. See the end of this README for how I did that.
 
-I think `rofi` only works with Linux, maybe on MacOS, almost certainly not on Windows. For quick desktop-based search, you'll need to run Linux (or maybe MacOS). I haven't tested MacOS because I don't have access to a machine that runs it.
+`rofi` works with Linux (and maybe on MacOS) but almost certainly not on Windows. For quick GUI-based search, you'll need to run Linux (or maybe MacOS). I haven't tested MacOS because I don't have access to a machine that runs it.
 
 ## Example Usage (with `rofi`)
 
@@ -189,20 +189,17 @@ cp build/rofi ~/bin
    - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
 
 ## TODO / FIXME / BUGS / Code improvements
- * Word correction doesn't work if 1 word is spelled correctly
+ * Word correction doesn't work if multiple words are provided and 1 of the words is spelled correctly
    - for example, try searching "epser origins" and you'll get questions about how to spell "origins" (which is correct) first rather than the actually incorrect word
  * Do some kind of "Display All" kind of thing.
    For example, searching "Tezzeret" gives a bunch of cards and I'm not sure which one I want (other than probably the type - but there's still a bunch of Planeswalkers)
  * Figure out (if possible) to make the Scryfall URI (L?) clickable in `rofi`.
- * Optionally, put the Scryfall URI into the clipboard.
- * Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
- * Test the DbErrors stuff.
+  - Optionally, put the Scryfall URI into the clipboard.
+  - Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
  * For misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
-   I'm guessing could involve cargo build.rs (or just a find+replace?)
  * Add more tests and improve the ones in `deser.rs`
  * Reduce `deser.rs` to only relevant key:value pairs or seperate into different repo/module entirely. It could maybe be useful for others.
    - Optionally/Alternatively delete the stuff in `deser.rs` that I don't use.
- * Fix all of the unchecked Results and deal with them (or just panic)
 
 ## Thanks
 

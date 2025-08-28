@@ -157,9 +157,9 @@ pub fn find_matching_cards_scryfall_style(percentaged_search_strings: &[String])
     sql.pop();
     sql.pop();
     sql.pop();
-    dbg!(&sql);
+    //dbg!(&sql);
     let mut stmt = conn.prepare(&sql).unwrap();
-    dbg!(&stmt);
+    //dbg!(&stmt);
     stmt.query_map(params_from_iter(percentaged_search_strings), |row| {
         Ok(DbCard {
             name: row.get(0).unwrap(),
@@ -274,9 +274,6 @@ pub fn init_db() {
 }
 
 fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
-    if card.name.contains("Sheoldred") {
-        dbg!(&card);
-    }
     let card_faces = card.card_faces.as_ref().unwrap();
     let first_face = card_faces.get(0).unwrap();
     let second_face = card_faces.get(1).unwrap();
@@ -288,6 +285,10 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
                      ON CONFLICT (word) DO NOTHING;",
             [word.replace(",", "")],
         );
+        if let Err(e) = res {
+            dbg!(e);
+            panic!("Error adding the card: {:?}", card);
+        }
     }
     // TODO - deduplicate this function and the parent function
     let lowercase_name = deunicode(&first_face.name.to_lowercase());
@@ -303,6 +304,10 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
             "INSERT INTO cards (name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, other_card_name, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
             params![first_face.name, lowercase_name, first_face.type_line, oracle_text, power_toughness, first_face.loyalty, first_face.mana_cost, second_face.name, card.scryfall_uri],
     );
+    if let Err(e) = res {
+        dbg!(e);
+        panic!("Error adding the card: {:?}", card);
+    }
 
     let lowercase_name = deunicode(&second_face.name.to_lowercase());
     let power_toughness = match &second_face.power {
@@ -317,13 +322,13 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
             "INSERT INTO cards (name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, other_card_name) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             params![second_face.name, lowercase_name, second_face.type_line, oracle_text, power_toughness, second_face.loyalty, second_face.mana_cost, first_face.name],
     );
-    if res.is_err() {
-        dbg!(res);
-        dbg!(card);
+    if let Err(e) = res {
+        dbg!(e);
+        panic!("Error adding the card: {:?}", card);
     }
 }
 
-pub fn update_db_with_file(file: PathBuf) -> bool {
+pub fn update_db_with_file(file: PathBuf) {
     let ac = fs::read_to_string(file).unwrap();
     let ac: Vec<ScryfallCard> = serde_json::from_str(&ac).unwrap();
     let sqlite_file = get_local_data_sqlite_file();
@@ -355,10 +360,14 @@ pub fn update_db_with_file(file: PathBuf) -> bool {
                      ON CONFLICT (word) DO NOTHING;",
                 [word.replace(",", "")],
             );
+            if let Err(e) = res {
+                dbg!(e);
+                panic!("Error adding the card: {:?}", card);
+            }
         }
         let lowercase_name = deunicode(&card.name.to_lowercase());
         let power_toughness = match card.power {
-            Some(p) => Some(format!("{}/{}", p, card.toughness.unwrap())),
+            Some(p) => Some(format!("{}/{}", p, card.toughness.clone().unwrap())),
             None => None,
         };
         let oracle_text = match card.oracle_text {
@@ -369,7 +378,14 @@ pub fn update_db_with_file(file: PathBuf) -> bool {
             "INSERT INTO cards (name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             params![card.name, lowercase_name, card.type_line, oracle_text, power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri],
         );
+        if let Err(e) = res {
+            dbg!(e);
+            panic!("Error adding the card: {:?}", &card.name);
+        }
     }
-    tx.commit();
-    true
+    let res = tx.commit();
+    if let Err(e) = res {
+        dbg!(e);
+        panic!("Error commiting the db");
+    }
 }
