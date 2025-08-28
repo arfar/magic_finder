@@ -47,13 +47,15 @@ fn rofi_show_did_you_mean(magic_words: &Vec<String>) -> String {
         .arg("-i")
         .args(["-p", "Did you mean"])
         .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
         .spawn()
         .unwrap();
     let child_stdin = child.stdin.as_mut().unwrap();
     let _ = child_stdin.write_all(magic_words_as_one_string.as_bytes());
     let output = child.wait_with_output().unwrap();
     let output = String::from_utf8(output.stdout.clone()).unwrap();
-    output
+    let output = output.trim();
+    output.to_string()
 }
 
 fn rofi_select_from_multiple_cards(cards: Vec<DbCard>) -> String {
@@ -94,18 +96,25 @@ fn main() {
     let card_search_result = try_match_card(&search_text_words);
     match card_search_result {
         CardMatchResult::DidYouMean(magic_words) => {
-            let selected_word = rofi_show_did_you_mean(&magic_words);
-            // There is going to be some code repeating here... refactor to make this
-            //  recursive probably?
-            let card_search_result = try_match_card(&search_text_words);
+            let did_you_mean_word = rofi_show_did_you_mean(&magic_words);
+            let mut did_you_mean_word_in_vec = Vec::new();
+            did_you_mean_word_in_vec.push(did_you_mean_word);
+            let card_search_result = try_match_card(&did_you_mean_word_in_vec);
             match card_search_result {
+                // This code is a bit of a double up of next codebock
                 CardMatchResult::DidYouMean(_) => {
                     unreachable!(
-                        "This tool suggested the string \"{}\" but couldn't find this anywhere",
-                        selected_word
+                        "This tool suggested the string \"{}\" but couldn't find this word in any card - there's a problem",
+                        did_you_mean_word_in_vec[0]
                     );
                 }
-                CardMatchResult::MultipleCardsMatch(cards) => {}
+                CardMatchResult::MultipleCardsMatch(cards) => {
+                    let selected_card = rofi_select_from_multiple_cards(cards);
+                    dbg!(&selected_card);
+                    let selected_card =
+                        get_card_by_name(&selected_card, GetNameType::Name).unwrap();
+                    rofi_print_card(&selected_card);
+                }
                 CardMatchResult::ExactCardFound(card) => {
                     rofi_print_card(&card);
                 }
