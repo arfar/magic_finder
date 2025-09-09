@@ -175,9 +175,9 @@ checksum = "abd57806937c9cc163efc8ea3910e00a62e2aeb0b8119f1793a978088f8f6b04"
 
 [[package]]
 name = "dir_spec"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f78ae3d020138bf65ae098c7b2b09bd93b799c1369550cceb6ac930da3bf62aa"
+checksum = "40235de9a5f9dbc5f0e84cd9f21f5f9530df1ce2e9aa14d5e1081d039a86f9e0"
 
 [[package]]
 name = "errno"

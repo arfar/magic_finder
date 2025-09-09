@@ -189,6 +189,7 @@ cp build/rofi ~/bin
    - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
 
 ## TODO / FIXME / BUGS / Code improvements
+ * FIXME FIRST - There's a bug where the other faces have the same name/lowercase name (see "The Superlatorium")
  * Word correction doesn't work if multiple words are provided and 1 of the words is spelled correctly
    - for example, try searching "epser origins" and you'll get questions about how to spell "origins" (which is correct) first rather than the actually incorrect word
  * Do some kind of "Display All" kind of thing.

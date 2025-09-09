@@ -11,13 +11,13 @@ use magic_finder::DbExistanceErrors;
 use magic_finder::GetNameType;
 use std::path::PathBuf;
 use std::process::ExitCode;
-
 use std::process::Termination;
 
+// This Exit stuff was here before when I used scripts to interface with this cli command.
+//  It's not _un_useful, so I'm going to leave it here.
 impl Termination for MtgCardExit {
     fn report(self) -> ExitCode {
         match self {
-            MtgCardExit::Success => ExitCode::SUCCESS,
             MtgCardExit::NoExactMatchCard => ExitCode::from(102),
             MtgCardExit::DidYouMean => ExitCode::from(105),
             MtgCardExit::MultipleCardsMatch => ExitCode::from(106),
@@ -31,7 +31,6 @@ impl Termination for MtgCardExit {
 }
 
 enum MtgCardExit {
-    Success,
     EmptySearchString,
     NoExactMatchCard,
     DidYouMean,
