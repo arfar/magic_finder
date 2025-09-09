@@ -288,6 +288,10 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
             panic!("Error adding the card: {:?}", card);
         }
     }
+    if card.type_line.contains("Token") {
+        dbg!(format!("Skipping {} because Token", &card.name));
+        return;
+    }
     // TODO - deduplicate this function and the parent function
     let lowercase_name = deunicode(&first_face.name.to_lowercase());
     let power_toughness = first_face
@@ -304,7 +308,15 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
     );
     if let Err(e) = res {
         dbg!(e);
+        dbg!(&card);
         panic!("Error adding the card: {:?}", card);
+    }
+
+    if let Some(sf) = &second_face.type_line {
+        if sf.contains("Token") {
+            dbg!(format!("Skipping {} because Token", &card.name));
+            return;
+        }
     }
 
     let lowercase_name = deunicode(&second_face.name.to_lowercase());
@@ -345,6 +357,36 @@ pub fn update_db_with_file(file: PathBuf) {
         if card.set_type == SetType::Token {
             continue;
         }
+        // This is a temporary fixes for double face things, split cards, and other issues
+        if card.type_line.contains("Attraction") {
+            dbg!(format!("Skipping {} because Attraction type", &card.name));
+            continue;
+        }
+
+        if card.type_line.contains("Token") {
+            dbg!(format!("Skipping {} because Token", &card.name));
+            continue;
+        }
+
+        if card.set.contains("ust") {
+            dbg!(format!("Skipping {} because UST set", &card.name));
+            continue;
+        }
+
+        if card.set.contains("cmb") {
+            dbg!(format!("Skipping {} because UST set", &card.name));
+            continue;
+        }
+
+        if card.set.contains("ugl") {
+            dbg!(format!("Skipping {} because UST set", &card.name));
+            continue;
+        }
+
+        if card.layout.contains("split") {
+            dbg!(format!("Skipping {} because split card", &card.name));
+            continue;
+        }
 
         if card.card_faces.is_some() {
             add_double_card(&tx, &card);
@@ -365,11 +407,11 @@ pub fn update_db_with_file(file: PathBuf) {
         }
         let lowercase_name = deunicode(&card.name.to_lowercase());
         let power_toughness = match card.power {
-            Some(p) => Some(format!("{}/{}", p, card.toughness.clone().unwrap())),
+            Some(ref p) => Some(format!("{}/{}", p, card.toughness.clone().unwrap())),
             None => None,
         };
         let oracle_text = match card.oracle_text {
-            Some(ot) => ot,
+            Some(ref ot) => ot.to_string(),
             None => "<No Oracle Text>".to_string(),
         };
         let res = tx.execute(
@@ -378,7 +420,7 @@ pub fn update_db_with_file(file: PathBuf) {
         );
         if let Err(e) = res {
             dbg!(e);
-            panic!("Error adding the card: {:?}", &card.name);
+            panic!("Error adding the card: {:?}", &card);
         }
     }
     let res = tx.commit();
