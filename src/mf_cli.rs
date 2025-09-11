@@ -1,6 +1,7 @@
 use clap::Parser;
 use magic_finder::check_db_exists_and_populated;
 use magic_finder::get_card_by_name;
+use magic_finder::get_db_connection;
 use magic_finder::get_local_data_folder;
 use magic_finder::init_db;
 use magic_finder::print_card;
@@ -77,7 +78,8 @@ fn main() -> MtgCardExit {
 
     if let Some(update) = args.update {
         init_db();
-        update_db_with_file(PathBuf::from(update));
+        let conn = get_db_connection();
+        update_db_with_file(PathBuf::from(update), conn);
         println!("Your database should be updated now");
         return MtgCardExit::UpdateSuccess;
     }

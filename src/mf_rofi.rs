@@ -1,4 +1,5 @@
 use magic_finder::get_card_by_name;
+use magic_finder::get_db_connection;
 use magic_finder::init_db;
 use magic_finder::try_match_card;
 use magic_finder::update_db_with_file;
@@ -108,7 +109,8 @@ fn main() {
         if args.len() == 2 && args[1] == "--update" {
             let filename = rofi_get_filename();
             init_db();
-            update_db_with_file(PathBuf::from(filename));
+            let conn = get_db_connection();
+            update_db_with_file(PathBuf::from(filename), conn);
             println!("Your database should be updated now");
             return;
         } else {

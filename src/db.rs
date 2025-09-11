@@ -338,11 +338,14 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
     }
 }
 
-pub fn update_db_with_file(file: PathBuf) {
+pub fn get_db_connection() -> Connection {
+    let sqlite_file = get_local_data_sqlite_file();
+    Connection::open(sqlite_file).unwrap()
+}
+
+pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
     let ac = fs::read_to_string(file).unwrap();
     let ac: Vec<ScryfallCard> = serde_json::from_str(&ac).unwrap();
-    let sqlite_file = get_local_data_sqlite_file();
-    let mut conn = Connection::open(sqlite_file).unwrap();
     let tx = conn.transaction().unwrap();
     for card in ac {
         // This should hopefully filter out Planes cards (but not Planeswalkers!)
@@ -427,5 +430,29 @@ pub fn update_db_with_file(file: PathBuf) {
     if let Err(e) = res {
         dbg!(e);
         panic!("Error commiting the db");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    fn init_test_db_and_get_db_connection() -> Connection {
+        let connection = Connection::open_in_memory().unwrap();
+        connection.execute(CREATE_CARDS_TABLE_SQL, ()).unwrap();
+        connection
+            .execute(CREATE_MAGIC_WORDS_TABLE_SQL, ())
+            .unwrap();
+        connection
+    }
+
+    #[test]
+    fn test_database_load() {
+        let conn = init_test_db_and_get_db_connection();
+        let mut f = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        f.push("test_files/oracle-cards.json");
+        assert!(f.exists(), "You need to download the oracle-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to oracle-cards.json");
+        update_db_with_file(f, conn);
     }
 }
