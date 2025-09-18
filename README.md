@@ -189,9 +189,6 @@ cp build/rofi ~/bin
    - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
 
 ## TODO / FIXME / BUGS / Code improvements
- * FIXME SECOND - There's a bug where the other faces have the same name/lowercase name (see "The Superlatorium")
- * FIXME FIRST - Bug with some split cards - should just write a separate function to handle them maybe
- * Issues with the BFM - 2 card "faces" have the same name... maybe I should consider going by the UUID for foreign keys rather than lowercase name
  * Word correction doesn't work if multiple words are provided and 1 of the words is spelled correctly
    - for example, try searching "epser origins" and you'll get questions about how to spell "origins" (which is correct) first rather than the actually incorrect word
  * Do some kind of "Display All" kind of thing.

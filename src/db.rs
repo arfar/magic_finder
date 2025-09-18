@@ -63,6 +63,28 @@ impl fmt::Display for DbCard {
         if let Some(l) = &self.loyalty {
             write!(f, "\nStarting Loyalty: {}", l)?
         }
+
+        if let Some(other_name) = &self.oc_name {
+            write!(f, "\n-----------------")?;
+            write!(f, "\n{}", other_name)?;
+        }
+        if let Some(other_mana_cost) = &self.oc_mana_cost {
+            write!(f, "\t{}", other_mana_cost)?;
+        }
+        if let Some(other_type_line) = &self.oc_type_line {
+            write!(f, "\n{}", other_type_line)?;
+        }
+        if let Some(other_ot) = &self.oc_oracle_text {
+            write!(f, "\n{}", other_ot)?
+        }
+
+        if let Some(other_pt) = &self.oc_power_toughness {
+            write!(f, "\n{}", other_pt)?
+        }
+
+        if let Some(l) = &self.oc_loyalty {
+            write!(f, "\nStarting Loyalty: {}", l)?
+        }
         Ok(())
     }
 }
@@ -98,12 +120,11 @@ pub struct DbCard {
     pub mana_cost: Option<String>,
     pub scryfall_uri: Option<String>,
     pub oc_name: Option<String>,
-    //pub oc_lowercase_name: Option<String>,
-    //pub oc_type_line: Option<String>,
-    //pub oc_oracle_text: Option<String>,
-    //pub oc_power_toughness: Option<String>,
-    //pub oc_loyalty: Option<String>,
-    //pub oc_mana_cost: Option<String>,
+    pub oc_type_line: Option<String>,
+    pub oc_oracle_text: Option<String>,
+    pub oc_power_toughness: Option<String>,
+    pub oc_loyalty: Option<String>,
+    pub oc_mana_cost: Option<String>,
 }
 
 pub enum GetNameType {
@@ -116,11 +137,11 @@ pub fn get_card_by_name(name: &str, name_type: GetNameType) -> Option<DbCard> {
     let conn = Connection::open(sqlite_file).unwrap();
     let sql = match name_type {
         GetNameType::Name => {
-            "SELECT scryfall_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name
+            "SELECT scryfall_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost
              FROM cards WHERE name = (?1)"
         }
         GetNameType::LowercaseName => {
-            "SELECT scryfall_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name
+            "SELECT scryfall_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost
              FROM cards WHERE LOWER(name) = (?1)"
         }
     };
@@ -136,6 +157,11 @@ pub fn get_card_by_name(name: &str, name_type: GetNameType) -> Option<DbCard> {
         mana_cost: row.get(6).unwrap(),
         scryfall_uri: row.get(7).unwrap(),
         oc_name: row.get(8).unwrap(),
+        oc_type_line: row.get(9).unwrap(),
+        oc_oracle_text: row.get(10).unwrap(),
+        oc_power_toughness: row.get(11).unwrap(),
+        oc_loyalty: row.get(12).unwrap(),
+        oc_mana_cost: row.get(13).unwrap(),
     })
 }
 
@@ -154,7 +180,7 @@ pub fn find_matching_cards_scryfall_style(percentaged_search_strings: &[String])
     let sqlite_file = get_local_data_sqlite_file();
     let conn = Connection::open(sqlite_file).unwrap();
 
-    let mut sql: String = "SELECT scryfall_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name
+    let mut sql: String = "SELECT scryfall_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost
              FROM cards WHERE".into();
     for i in 0..percentaged_search_strings.len() {
         sql.push_str(&format!(" LOWER(name) LIKE (?{}) AND", i + 1));
@@ -176,6 +202,11 @@ pub fn find_matching_cards_scryfall_style(percentaged_search_strings: &[String])
             mana_cost: row.get(6).unwrap(),
             scryfall_uri: row.get(7).unwrap(),
             oc_name: row.get(8).unwrap(),
+            oc_type_line: row.get(9).unwrap(),
+            oc_oracle_text: row.get(10).unwrap(),
+            oc_power_toughness: row.get(11).unwrap(),
+            oc_loyalty: row.get(12).unwrap(),
+            oc_mana_cost: row.get(13).unwrap(),
         })
     })
     .unwrap()
@@ -192,8 +223,8 @@ pub fn find_matching_cards(name: &str) -> Vec<DbCard> {
     name.insert(0, '%');
     let mut stmt = conn
         .prepare(
-            "SELECT scryfall_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_card_name
-             FROM cards WHERE LOWER(name) LIKE (?1)",
+            "SELECT scryfall_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost
+             FROM cards WHERE LOWER(name) LIKE (?1) OR LOWER(oc_name) LIKE (?1)",
         )
         .unwrap();
     stmt.query_map([name], |row| {
@@ -207,6 +238,11 @@ pub fn find_matching_cards(name: &str) -> Vec<DbCard> {
             mana_cost: row.get(6).unwrap(),
             scryfall_uri: row.get(7).unwrap(),
             oc_name: row.get(8).unwrap(),
+            oc_type_line: row.get(9).unwrap(),
+            oc_oracle_text: row.get(10).unwrap(),
+            oc_power_toughness: row.get(11).unwrap(),
+            oc_loyalty: row.get(12).unwrap(),
+            oc_mana_cost: row.get(13).unwrap(),
         })
     })
     .unwrap()

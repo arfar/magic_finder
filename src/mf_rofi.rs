@@ -32,11 +32,9 @@ fn initial_rofi() -> String {
 
 fn rofi_print_card(card: &DbCard) {
     let display_string = match card.oc_name {
-        Some(ref c) => {
+        Some(ref _c) => {
             let mut display_string = String::new();
             display_string.push_str(&card.to_string());
-            let other_card = get_card_by_name(c, GetNameType::Name).unwrap();
-            display_string.push_str(&other_card.to_string());
             display_string
         }
         None => card.to_string(),
