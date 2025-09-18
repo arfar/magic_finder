@@ -400,6 +400,13 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
             }
         }
 
+        /*
+            if card.name.contains("Spider-Punk") {
+                dbg!(card);
+                panic!();
+        }
+            */
+
         // This is a temporary fixes for double face things, split cards, and other issues
         if card.card_faces.is_some() {
             add_double_card(&tx, &card);

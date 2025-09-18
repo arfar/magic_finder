@@ -181,6 +181,9 @@ cp build/rofi ~/bin
 ```
 
 ## TODO / FIXME / Code improvements
+ * FIXME The Omenpath cards are unsearchable - only their spider equivalent is possible
+   - Very annoyingly the Omenpath cards aren't in the `oracle-cards` bulk download. Unsure how to deal with this. One option is to use the Omenpath set API (`https://api.scryfall.com/cards/search?order=set&q=e%3Aom1&unique=prints`) and adding those "manually".
+   - Also of note, they have the same oracle uuid (I don't use this though, so shouldn't be a problem there).
  * FIXME Word correction doesn't work if multiple words are provided and 1 of the words is spelled correctly
    - for example, try searching "epser origins" and you'll get questions about how to spell "origins" (which is correct) first rather than the actually incorrect word
  * FEATURE Do some kind of "Display All" kind of thing.
