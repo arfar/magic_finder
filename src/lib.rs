@@ -55,7 +55,7 @@ pub fn try_match_card(search_text: &Vec<String>) -> CardMatchResult {
 
 pub fn print_card(card: &DbCard) {
     println!("{}", card);
-    if let Some(oc) = &card.other_card_name {
+    if let Some(oc) = &card.oc_name {
         println!("----------------------------");
         let card = get_card_by_name(oc, GetNameType::Name).unwrap();
         println!("{}", card);

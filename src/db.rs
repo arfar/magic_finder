@@ -89,6 +89,7 @@ impl Eq for DbCard {}
 
 #[derive(Debug)]
 pub struct DbCard {
+    pub scryfall_uuid: [u8; 16],
     pub name: String,
     pub lowercase_name: String,
     pub type_line: String,
@@ -97,7 +98,13 @@ pub struct DbCard {
     pub loyalty: Option<String>,
     pub mana_cost: Option<String>,
     pub scryfall_uri: Option<String>,
-    pub other_card_name: Option<String>,
+    pub oc_name: Option<String>,
+    //pub oc_lowercase_name: Option<String>,
+    //pub oc_type_line: Option<String>,
+    //pub oc_oracle_text: Option<String>,
+    //pub oc_power_toughness: Option<String>,
+    //pub oc_loyalty: Option<String>,
+    //pub oc_mana_cost: Option<String>,
 }
 
 pub enum GetNameType {
@@ -110,26 +117,27 @@ pub fn get_card_by_name(name: &str, name_type: GetNameType) -> Option<DbCard> {
     let conn = Connection::open(sqlite_file).unwrap();
     let sql = match name_type {
         GetNameType::Name => {
-            "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_card_name
+            "SELECT scryfall_uuid, name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name
              FROM cards WHERE name = (?1)"
         }
         GetNameType::LowercaseName => {
-            "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_card_name
+            "SELECT scryfall_uuid, name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name
              FROM cards WHERE lowercase_name = (?1)"
         }
     };
     let mut stmt = conn.prepare(sql).unwrap();
     let mut rows = stmt.query([name]).unwrap();
     rows.next().unwrap().map(|row| DbCard {
-        name: row.get(0).unwrap(),
-        lowercase_name: row.get(1).unwrap(),
-        type_line: row.get(2).unwrap(),
-        oracle_text: row.get(3).unwrap(),
-        power_toughness: row.get(4).unwrap(),
-        loyalty: row.get(5).unwrap(),
-        mana_cost: row.get(6).unwrap(),
-        scryfall_uri: row.get(7).unwrap(),
-        other_card_name: row.get(8).unwrap(),
+        scryfall_uuid: row.get(0).unwrap(),
+        name: row.get(1).unwrap(),
+        lowercase_name: row.get(2).unwrap(),
+        type_line: row.get(3).unwrap(),
+        oracle_text: row.get(4).unwrap(),
+        power_toughness: row.get(5).unwrap(),
+        loyalty: row.get(6).unwrap(),
+        mana_cost: row.get(7).unwrap(),
+        scryfall_uri: row.get(8).unwrap(),
+        oc_name: row.get(9).unwrap(),
     })
 }
 
@@ -148,11 +156,12 @@ pub fn find_matching_cards_scryfall_style(percentaged_search_strings: &[String])
     let sqlite_file = get_local_data_sqlite_file();
     let conn = Connection::open(sqlite_file).unwrap();
 
-    let mut sql: String = "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_card_name
+    let mut sql: String = "SELECT scryfall_uuid, name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name
              FROM cards WHERE".into();
     for i in 0..percentaged_search_strings.len() {
         sql.push_str(&format!(" lowercase_name LIKE (?{}) AND", i + 1));
     }
+    // pop the " AND"
     sql.pop();
     sql.pop();
     sql.pop();
@@ -160,15 +169,16 @@ pub fn find_matching_cards_scryfall_style(percentaged_search_strings: &[String])
     let mut stmt = conn.prepare(&sql).unwrap();
     stmt.query_map(params_from_iter(percentaged_search_strings), |row| {
         Ok(DbCard {
-            name: row.get(0).unwrap(),
-            lowercase_name: row.get(1).unwrap(),
-            type_line: row.get(2).unwrap(),
-            oracle_text: row.get(3).unwrap(),
-            power_toughness: row.get(4).unwrap(),
-            loyalty: row.get(5).unwrap(),
-            mana_cost: row.get(6).unwrap(),
-            scryfall_uri: row.get(7).unwrap(),
-            other_card_name: row.get(8).unwrap(),
+            scryfall_uuid: row.get(0).unwrap(),
+            name: row.get(1).unwrap(),
+            lowercase_name: row.get(2).unwrap(),
+            type_line: row.get(3).unwrap(),
+            oracle_text: row.get(4).unwrap(),
+            power_toughness: row.get(5).unwrap(),
+            loyalty: row.get(6).unwrap(),
+            mana_cost: row.get(7).unwrap(),
+            scryfall_uri: row.get(8).unwrap(),
+            oc_name: row.get(9).unwrap(),
         })
     })
     .unwrap()
@@ -185,21 +195,22 @@ pub fn find_matching_cards(name: &str) -> Vec<DbCard> {
     name.insert(0, '%');
     let mut stmt = conn
         .prepare(
-            "SELECT name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_card_name
+            "SELECT scryfall_uuid, name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, other_card_name
              FROM cards WHERE lowercase_name LIKE (?1)",
         )
         .unwrap();
     stmt.query_map([name], |row| {
         Ok(DbCard {
-            name: row.get(0).unwrap(),
-            lowercase_name: row.get(1).unwrap(),
-            type_line: row.get(2).unwrap(),
-            oracle_text: row.get(3).unwrap(),
-            power_toughness: row.get(4).unwrap(),
-            loyalty: row.get(5).unwrap(),
-            mana_cost: row.get(6).unwrap(),
-            scryfall_uri: row.get(7).unwrap(),
-            other_card_name: row.get(8).unwrap(),
+            scryfall_uuid: row.get(0).unwrap(),
+            name: row.get(1).unwrap(),
+            lowercase_name: row.get(2).unwrap(),
+            type_line: row.get(3).unwrap(),
+            oracle_text: row.get(4).unwrap(),
+            power_toughness: row.get(5).unwrap(),
+            loyalty: row.get(6).unwrap(),
+            mana_cost: row.get(7).unwrap(),
+            scryfall_uri: row.get(8).unwrap(),
+            oc_name: row.get(9).unwrap(),
         })
     })
     .unwrap()
@@ -238,15 +249,22 @@ pub fn check_db_exists_and_populated() -> Result<(), DbExistanceErrors> {
 
 const CREATE_CARDS_TABLE_SQL: &str = "
 CREATE TABLE cards (
-    name TEXT NOT NULL UNIQUE,
-    lowercase_name TEXT NOT NULL UNIQUE,
+    scryfall_uuid BLOB NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    lowercase_name TEXT NOT NULL,
     type_line TEXT,
     oracle_text TEXT,
     power_toughness TEXT,
     loyalty TEXT,
     mana_cost TEXT,
     scryfall_uri TEXT UNIQUE,
-    other_card_name TEXT DEFAULT NULL
+    oc_name TEXT DEFAULT NULL,
+    oc_lowercase_name TEXT DEFAULT NULL,
+    oc_type_line TEXT DEFAULT NULL,
+    oc_oracle_text TEXT DEFAULT NULL,
+    oc_power_toughness TEXT DEFAULT NULL,
+    oc_loyalty TEXT DEAFULT NULL,
+    oc_mana_cost TEXT DEAFULT NULL
 )";
 // Because of how Scryfall gives this to us, other_card_name can mean the other side of the
 //  card or the adventure part of the card
@@ -276,6 +294,11 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
     let first_face = card_faces.first().unwrap();
     let second_face = card_faces.get(1).unwrap();
 
+    if card.type_line.contains("Token") {
+        dbg!(format!("Skipping {} because Token", &card.name));
+        return;
+    }
+
     for word in card.name.split_whitespace() {
         let word = deunicode(&word.to_lowercase());
         let res = tx.execute(
@@ -285,13 +308,10 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
         );
         if let Err(e) = res {
             dbg!(e);
-            panic!("Error adding the card: {:?}", card);
+            panic!("Error adding the word: {:?}", word);
         }
     }
-    if card.type_line.contains("Token") {
-        dbg!(format!("Skipping {} because Token", &card.name));
-        return;
-    }
+
     // TODO - deduplicate this function and the parent function
     let lowercase_name = deunicode(&first_face.name.to_lowercase());
     let power_toughness = first_face
@@ -302,9 +322,10 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
         Some(ot) => ot,
         None => "<No Oracle Text>".to_string(),
     };
+    let uuid: [u8; 16] = card.id.to_bytes_le();
     let res = tx.execute(
-            "INSERT INTO cards (name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, other_card_name, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
-            params![first_face.name, lowercase_name, first_face.type_line, oracle_text, power_toughness, first_face.loyalty, first_face.mana_cost, second_face.name, card.scryfall_uri],
+            "INSERT INTO cards (scryfall_uuid, name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, oc_name, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            params![uuid, first_face.name, lowercase_name, first_face.type_line, oracle_text, power_toughness, first_face.loyalty, first_face.mana_cost, second_face.name, card.scryfall_uri],
     );
     if let Err(e) = res {
         dbg!(e);
@@ -329,7 +350,7 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
         None => "<No Oracle Text>".to_string(),
     };
     let res = tx.execute(
-            "INSERT INTO cards (name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, other_card_name) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            "INSERT INTO cards (scryfall_uuid, name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, oc_name) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             params![second_face.name, lowercase_name, second_face.type_line, oracle_text, power_toughness, second_face.loyalty, second_face.mana_cost, first_face.name],
     );
     if let Err(e) = res {
@@ -392,8 +413,9 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
         }
 
         if card.card_faces.is_some() {
-            add_double_card(&tx, &card);
+            // add_double_card(&tx, &card);
             continue;
+            // TODO - probably just handle it in here - I don't want 2 entries per face now
         }
 
         for word in card.name.split_whitespace() {
@@ -417,9 +439,10 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
             Some(ref ot) => ot.to_string(),
             None => "<No Oracle Text>".to_string(),
         };
+        let uuid: [u8; 16] = card.id.to_bytes_le();
         let res = tx.execute(
-            "INSERT INTO cards (name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-            params![card.name, lowercase_name, card.type_line, oracle_text, power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri],
+            "INSERT INTO cards (scryfall_uuid, name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            params![uuid, card.name, lowercase_name, card.type_line, oracle_text, power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri],
         );
         if let Err(e) = res {
             dbg!(e);

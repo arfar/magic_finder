@@ -31,7 +31,7 @@ fn initial_rofi() -> String {
 }
 
 fn rofi_print_card(card: &DbCard) {
-    let display_string = match card.other_card_name {
+    let display_string = match card.oc_name {
         Some(ref c) => {
             let mut display_string = String::new();
             display_string.push_str(&card.to_string());
