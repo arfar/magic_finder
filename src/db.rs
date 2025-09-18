@@ -294,65 +294,33 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
     let first_face = card_faces.first().unwrap();
     let second_face = card_faces.get(1).unwrap();
 
-    if card.type_line.contains("Token") {
-        dbg!(format!("Skipping {} because Token", &card.name));
-        return;
-    }
-
-    for word in card.name.split_whitespace() {
-        let word = deunicode(&word.to_lowercase());
-        let res = tx.execute(
-            "INSERT INTO mtg_words (word) VALUES (?1)
-                     ON CONFLICT (word) DO NOTHING;",
-            [word.replace(",", "")],
-        );
-        if let Err(e) = res {
-            dbg!(e);
-            panic!("Error adding the word: {:?}", word);
-        }
-    }
-
     // TODO - deduplicate this function and the parent function
-    let lowercase_name = deunicode(&first_face.name.to_lowercase());
-    let power_toughness = first_face
+    let first_lowercase_name = deunicode(&first_face.name.to_lowercase());
+    let first_power_toughness = first_face
         .power
         .as_ref()
         .map(|p| format!("{}/{}", p, first_face.toughness.clone().unwrap()));
-    let oracle_text = match first_face.oracle_text.clone() {
+    let first_oracle_text = match first_face.oracle_text.clone() {
         Some(ot) => ot,
         None => "<No Oracle Text>".to_string(),
     };
     let uuid: [u8; 16] = card.id.to_bytes_le();
-    let res = tx.execute(
-            "INSERT INTO cards (scryfall_uuid, name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, oc_name, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
-            params![uuid, first_face.name, lowercase_name, first_face.type_line, oracle_text, power_toughness, first_face.loyalty, first_face.mana_cost, second_face.name, card.scryfall_uri],
-    );
-    if let Err(e) = res {
-        dbg!(e);
-        dbg!(&card);
-        panic!("Error adding the card: {:?}", card);
-    }
 
-    if let Some(sf) = &second_face.type_line {
-        if sf.contains("Token") {
-            dbg!(format!("Skipping {} because Token", &card.name));
-            return;
-        }
-    }
-
-    let lowercase_name = deunicode(&second_face.name.to_lowercase());
-    let power_toughness = second_face
+    let second_lowercase_name = deunicode(&second_face.name.to_lowercase());
+    let second_power_toughness = second_face
         .power
         .as_ref()
         .map(|p| format!("{}/{}", p, second_face.toughness.clone().unwrap()));
-    let oracle_text = match second_face.oracle_text.clone() {
+    let second_oracle_text = match second_face.oracle_text.clone() {
         Some(ot) => ot,
         None => "<No Oracle Text>".to_string(),
     };
+
     let res = tx.execute(
-            "INSERT INTO cards (scryfall_uuid, name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, oc_name) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-            params![second_face.name, lowercase_name, second_face.type_line, oracle_text, power_toughness, second_face.loyalty, second_face.mana_cost, first_face.name],
+            "INSERT INTO cards (scryfall_uuid, name, lowercase_name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_lowercase_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_mana_cost) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
+            params![uuid, first_face.name, first_lowercase_name, first_face.type_line, first_oracle_text, first_power_toughness, first_face.loyalty, first_face.mana_cost, card.scryfall_uri, second_face.name, second_lowercase_name, second_face.type_line, second_oracle_text, second_power_toughness, second_face.mana_cost],
     );
+
     if let Err(e) = res {
         dbg!(e);
         panic!("Error adding the card: {:?}", card);
@@ -369,55 +337,6 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
     let ac: Vec<ScryfallCard> = serde_json::from_str(&ac).unwrap();
     let tx = conn.transaction().unwrap();
     for card in ac {
-        // This should hopefully filter out Planes cards (but not Planeswalkers!)
-        if card.type_line.contains("Plane ") {
-            continue;
-        }
-        // This should hopefully filter out art cards and similar sorts of non-card cards
-        if card.set_type == SetType::Memorabilia {
-            continue;
-        }
-        // I don't think one would need to search for a token either
-        if card.set_type == SetType::Token {
-            continue;
-        }
-        // This is a temporary fixes for double face things, split cards, and other issues
-        if card.type_line.contains("Attraction") {
-            dbg!(format!("Skipping {} because Attraction type", &card.name));
-            continue;
-        }
-
-        if card.type_line.contains("Token") {
-            dbg!(format!("Skipping {} because Token", &card.name));
-            continue;
-        }
-
-        if card.set.contains("ust") {
-            dbg!(format!("Skipping {} because UST set", &card.name));
-            continue;
-        }
-
-        if card.set.contains("cmb") {
-            dbg!(format!("Skipping {} because UST set", &card.name));
-            continue;
-        }
-
-        if card.set.contains("ugl") {
-            dbg!(format!("Skipping {} because UST set", &card.name));
-            continue;
-        }
-
-        if card.layout.contains("split") {
-            dbg!(format!("Skipping {} because split card", &card.name));
-            continue;
-        }
-
-        if card.card_faces.is_some() {
-            // add_double_card(&tx, &card);
-            continue;
-            // TODO - probably just handle it in here - I don't want 2 entries per face now
-        }
-
         for word in card.name.split_whitespace() {
             let word = deunicode(&word.to_lowercase());
             let res = tx.execute(
@@ -430,6 +349,31 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
                 panic!("Error adding the card: {:?}", card);
             }
         }
+
+        // This should hopefully filter out Planes cards (but not Planeswalkers!)
+        if card.type_line.contains("Plane ") {
+            continue;
+        }
+        // This should hopefully filter out art cards and similar sorts of non-card cards
+        if card.set_type == SetType::Memorabilia {
+            continue;
+        }
+        // I don't think one would need to search for a token either
+        if card.set_type == SetType::Token {
+            continue;
+        }
+        if card.set_type == SetType::Minigame {
+            continue;
+        }
+        if card.type_line.contains("Token") {
+            continue;
+        }
+        // This is a temporary fixes for double face things, split cards, and other issues
+        if card.card_faces.is_some() {
+            add_double_card(&tx, &card);
+            continue;
+        }
+
         let lowercase_name = deunicode(&card.name.to_lowercase());
         let power_toughness = match card.power {
             Some(ref p) => Some(format!("{}/{}", p, card.toughness.clone().unwrap())),
