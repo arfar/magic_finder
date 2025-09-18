@@ -337,19 +337,6 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
     let ac: Vec<ScryfallCard> = serde_json::from_str(&ac).unwrap();
     let tx = conn.transaction().unwrap();
     for card in ac {
-        for word in card.name.split_whitespace() {
-            let word = deunicode(&word.to_lowercase());
-            let res = tx.execute(
-                "INSERT INTO mtg_words (word) VALUES (?1)
-                     ON CONFLICT (word) DO NOTHING;",
-                [word.replace(",", "")],
-            );
-            if let Err(e) = res {
-                dbg!(e);
-                panic!("Error adding the card: {:?}", card);
-            }
-        }
-
         // This should hopefully filter out Planes cards (but not Planeswalkers!)
         if card.type_line.contains("Plane ") {
             continue;
@@ -368,6 +355,23 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
         if card.type_line.contains("Token") {
             continue;
         }
+
+        for word in card.name.split_whitespace() {
+            let word = deunicode(&word.to_lowercase());
+            if word.contains("//") {
+                continue;
+            }
+            let res = tx.execute(
+                "INSERT INTO mtg_words (word) VALUES (?1)
+                     ON CONFLICT (word) DO NOTHING;",
+                [word.replace(",", "")],
+            );
+            if let Err(e) = res {
+                dbg!(e);
+                panic!("Error adding the card: {:?}", card);
+            }
+        }
+
         // This is a temporary fixes for double face things, split cards, and other issues
         if card.card_faces.is_some() {
             add_double_card(&tx, &card);
