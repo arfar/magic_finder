@@ -184,11 +184,11 @@ cp build/rofi ~/bin
  * FIXME Word correction doesn't work if multiple words are provided and 1 of the words is spelled correctly
    - for example, try searching "epser origins" and you'll get questions about how to spell "origins" (which is correct) first rather than the actually incorrect word
  * FEATURE Do some kind of "Display All" kind of thing.
-   For example, searching "Tezzeret" gives a bunch of cards and I'm not sure which one I want (other than probably the type - but there's still a bunch of Planeswalkers)
+   - For example, searching "Tezzeret" gives a bunch of cards and I'm not sure which one I want (other than probably the type - but there's still a bunch of Planeswalkers)
  * FEATURE Make the Scryfall URI (L?) clickable in `rofi`.
-  - Optionally, put the Scryfall URI into the clipboard.
-  - Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
-  - I don't think this is actually possible with `rofi`.
+   - Optionally, put the Scryfall URI into the clipboard.
+   - Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
+   - I don't think this is actually possible with `rofi`.
  * FEATURE For misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
  * IMPROVEMENTS Add more tests and improve the ones in `deser.rs`
  * IMPROVEMENTS Reduce `deser.rs` to only relevant key:value pairs or seperate into different repo/module entirely. It could maybe be useful for others.
