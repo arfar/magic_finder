@@ -76,7 +76,6 @@ Without exact, this tool will imitate Scryfall search and search for each indivi
 ```
 $ magic_finder_cli Black Lotus
 Black Lotus
-Black Lotus Lounge
 Blacker Lotus
 ```
 
@@ -125,7 +124,7 @@ Use either:
  
 From there, it should Just Work (TM). If not, try updating this repo. If it still doesn't work, log a ticket. It's probably going to something with Scryfall updating their schema that I haven't accounted for.
 
-NOTE: Updating *will* delete the previous db - that shouldn't be a problem though, because you shouldn't use that unless you really know what you're doing.
+NOTE: Updating *will* delete the previous db - that shouldn't be a problem though, because you shouldn't be mucking around with that that unless you really know what you're doing.
 
 ## Uninstall
 
@@ -150,7 +149,7 @@ The idea is it's just easier and quicker than my normal process.
 ## How I Installed `rofi`
 If you're smarter than me, just follow the official docs: https://github.com/davatorium/rofi/blob/next/INSTALL.md and don't bother reading this.
 
-I am entirely unfamiliar with `meson` and `ninja` (I'm more a `Makefile` kinda guy - haven't done any `C` properly in >10 years), so here's what I did. This is for Ubutntu - you will need to do something different for download the dependencies (you can see them in the INSTALL.md file referenced above).
+I am entirely unfamiliar with `meson` and `ninja` (I'm more a `Makefile` kinda guy - haven't done any `C` properly in >10 years), so here's what I did. This is for Ubutntu - you will need to do something different for downloading the dependencies (you can see them in the INSTALL.md file referenced above).
 
 Of note below, I'm installing this into my `$HOME/bin` directory. Change that part if you want to install somewhere else. Make sure to install it somewhere in your `$PATH` though!
 
@@ -188,17 +187,18 @@ cp build/rofi ~/bin
    - AK - Accumulated Knowledge
    - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
 
-## TODO / FIXME / BUGS / Code improvements
- * Word correction doesn't work if multiple words are provided and 1 of the words is spelled correctly
+## TODO / FIXME / Code improvements
+ * FIXME Word correction doesn't work if multiple words are provided and 1 of the words is spelled correctly
    - for example, try searching "epser origins" and you'll get questions about how to spell "origins" (which is correct) first rather than the actually incorrect word
- * Do some kind of "Display All" kind of thing.
+ * FEATURE Do some kind of "Display All" kind of thing.
    For example, searching "Tezzeret" gives a bunch of cards and I'm not sure which one I want (other than probably the type - but there's still a bunch of Planeswalkers)
- * Figure out (if possible) to make the Scryfall URI (L?) clickable in `rofi`.
+ * FEATURE Figure out (if possible) to make the Scryfall URI (L?) clickable in `rofi`.
   - Optionally, put the Scryfall URI into the clipboard.
   - Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
- * For misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
- * Add more tests and improve the ones in `deser.rs`
- * Reduce `deser.rs` to only relevant key:value pairs or seperate into different repo/module entirely. It could maybe be useful for others.
+  - I don't think this is actually possible with `rofi`.
+ * FEATURE For misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
+ * IMPROVEMENTS Add more tests and improve the ones in `deser.rs`
+ * IMPROVEMENTS Reduce `deser.rs` to only relevant key:value pairs or seperate into different repo/module entirely. It could maybe be useful for others.
    - Optionally/Alternatively delete the stuff in `deser.rs` that I don't use.
 
 ## Thanks
