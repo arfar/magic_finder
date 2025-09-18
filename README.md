@@ -180,19 +180,12 @@ Fingers crossed that all compiled and stuff... then copy the bin
 cp build/rofi ~/bin
 ```
 
-## Potential Features
- * Display the actual card image (probably won't do this)
- * Add some classic nicknames (might be difficult to find them all). examples include:
-   - Bob - Dark Confidant
-   - AK - Accumulated Knowledge
-   - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
-
 ## TODO / FIXME / Code improvements
  * FIXME Word correction doesn't work if multiple words are provided and 1 of the words is spelled correctly
    - for example, try searching "epser origins" and you'll get questions about how to spell "origins" (which is correct) first rather than the actually incorrect word
  * FEATURE Do some kind of "Display All" kind of thing.
    For example, searching "Tezzeret" gives a bunch of cards and I'm not sure which one I want (other than probably the type - but there's still a bunch of Planeswalkers)
- * FEATURE Figure out (if possible) to make the Scryfall URI (L?) clickable in `rofi`.
+ * FEATURE Make the Scryfall URI (L?) clickable in `rofi`.
   - Optionally, put the Scryfall URI into the clipboard.
   - Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
   - I don't think this is actually possible with `rofi`.
@@ -200,6 +193,13 @@ cp build/rofi ~/bin
  * IMPROVEMENTS Add more tests and improve the ones in `deser.rs`
  * IMPROVEMENTS Reduce `deser.rs` to only relevant key:value pairs or seperate into different repo/module entirely. It could maybe be useful for others.
    - Optionally/Alternatively delete the stuff in `deser.rs` that I don't use.
+ * FEATURE Add some classic nicknames. Examples include:
+   - Bob -> Dark Confidant
+   - AK -> Accumulated Knowledge
+   - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
+ * FEATURE Display images
+ * FIXME There are some cards with the same name (e.g. The Superlatorium and B.F.M) which are listed more than once.
+   - Don't think I will fix this... how often are you searching for this?!?
 
 ## Thanks
 
