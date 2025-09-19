@@ -200,6 +200,7 @@ cp build/rofi ~/bin
  * FEATURE Display images
  * FIXME There are some cards with the same name (e.g. The Superlatorium and B.F.M) which are listed more than once.
    - Don't think I will fix this... how often are you searching for this anyways?!?
+ * FEATURE Show the Omenpath name if you search for the Spider card (and vice-versa).
  * FIXME I'm not very happy about downloading the Omenpath cards separately via the Scryfall API. I _could_ look into using the `all-cards` bulk, but that would be even more downloading (and there's a painful set of ~30 cards that don't have typelines so I can't instantly/easily deser them).
 
 ## Thanks
