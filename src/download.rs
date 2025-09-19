@@ -43,7 +43,8 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore]
     fn get_cards() {
-        let cards = download_omenpath_set();
+        let _cards = download_omenpath_set();
     }
 }

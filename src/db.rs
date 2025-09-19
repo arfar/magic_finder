@@ -398,8 +398,7 @@ fn add_omenpath_cards(tx: &Transaction) {
         let uuid: [u8; 16] = card.id.to_bytes_le();
         // I don't think there's any double cards in here... fingers crossed
         let res = tx.execute(
-            "INSERT INTO cards (scryfall_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
-                 ON CONFLICT (scryfall_uuid) DO NOTHING",
+            "INSERT INTO cards (scryfall_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             params![uuid, card_name, card.type_line, oracle_text, power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri],
         );
         if let Err(e) = res {
@@ -449,13 +448,6 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
             }
         }
 
-        /*
-            if card.name.contains("Spider-Punk") {
-                dbg!(card);
-                panic!();
-        }
-            */
-
         if card.card_faces.is_some() {
             add_double_card(&tx, &card);
             continue;
@@ -471,8 +463,7 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
         };
         let uuid: [u8; 16] = card.id.to_bytes_le();
         let res = tx.execute(
-            "INSERT INTO cards (scryfall_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
-                 ON CONFLICT (scryfall_uuid) DO NOTHING",
+            "INSERT INTO cards (scryfall_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             params![uuid, card.name, card.type_line, oracle_text, power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri],
         );
         if let Err(e) = res {

@@ -180,10 +180,7 @@ Fingers crossed that all compiled and stuff... then copy the bin
 cp build/rofi ~/bin
 ```
 
-## TODO / FIXME / Code improvements
- * FIXME The Omenpath cards are unsearchable - only their spider equivalent is possible
-   - Very annoyingly the Omenpath cards aren't in the `oracle-cards` bulk download. Unsure how to deal with this. One option is to use the Omenpath set API (`https://api.scryfall.com/cards/search?order=set&q=e%3Aom1&unique=prints`) and adding those "manually".
-   - Also of note, they have the same oracle uuid (I don't use this though, so shouldn't be a problem there).
+## TODO / FIXME / Potential FEATURES / Code improvements
  * FIXME Word correction doesn't work if multiple words are provided and 1 of the words is spelled correctly
    - for example, try searching "epser origins" and you'll get questions about how to spell "origins" (which is correct) first rather than the actually incorrect word
  * FEATURE Do some kind of "Display All" kind of thing.
@@ -202,7 +199,8 @@ cp build/rofi ~/bin
    - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
  * FEATURE Display images
  * FIXME There are some cards with the same name (e.g. The Superlatorium and B.F.M) which are listed more than once.
-   - Don't think I will fix this... how often are you searching for this?!?
+   - Don't think I will fix this... how often are you searching for this anyways?!?
+ * FIXME I'm not very happy about downloading the Omenpath cards separately via the Scryfall API. I _could_ look into using the `all-cards` bulk, but that would be even more downloading (and there's a painful set of ~30 cards that don't have typelines so I can't instantly/easily deser them).
 
 ## Thanks
 
