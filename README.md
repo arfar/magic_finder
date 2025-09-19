@@ -190,7 +190,7 @@ cp build/rofi ~/bin
    - Optionally, put the Scryfall URI into the clipboard.
    - Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
    - I don't think this is actually possible with `rofi`.
- * FEATURE Show the Omenpath name if you search for the Spider card (and vice-versa).
+ * FIXME If 2 "different" but the "same" cards have the same name, the display is kinda fucky (see "Vibrant Cityscape") and it's listed twice
  * FIXME If no card misspellings options are available, just exit with error (try searching "avoidance")
  * FEATURE For misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
  * IMPROVEMENTS Add more tests and improve the ones in `deser.rs`

@@ -1,4 +1,3 @@
-use dir_spec::Dir;
 use std::fs;
 use std::path::PathBuf;
 
@@ -6,7 +5,7 @@ pub const PROJECT_LOCAL_FOLDER: &str = "magic_finder";
 pub const SQLITE_FILENAME: &str = "magic_filder_db.sqlite3";
 
 pub fn get_local_data_folder() -> PathBuf {
-    let data_folder = Dir::data_home();
+    let data_folder = dir_spec::data_home();
     match data_folder {
         None => {
             panic!("Can't find a data folder - really don't know what the problem is sorry");
