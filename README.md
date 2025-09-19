@@ -191,7 +191,10 @@ cp build/rofi ~/bin
    - Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
    - I don't think this is actually possible with `rofi`.
  * FIXME If 2 "different" but the "same" cards have the same name, the display is kinda fucky (see "Vibrant Cityscape") and it's listed twice
+ * FIXME There's something wrong with the oracle text for the new cards. (see "Luis" or "Egrix", the refer to "Morlon" and "Gwenom" incorrectly).
+   - This is a problem with the Scryfall API - it returns the Gwenom language. Won't fix here.
  * FIXME If no card misspellings options are available, just exit with error (try searching "avoidance")
+ * FIXME "Will the Wise" isn't in there for some reason. Potentially some Universes Within issue. I think it's literally not in the data dump kind of annoyingly... I think I might need to consider going the `all-cards` route to capture all of these.
  * FEATURE For misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
  * IMPROVEMENTS Add more tests and improve the ones in `deser.rs`
  * IMPROVEMENTS Reduce `deser.rs` to only relevant key:value pairs or seperate into different repo/module entirely. It could maybe be useful for others.
