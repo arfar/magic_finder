@@ -73,6 +73,10 @@ fn rofi_select_from_multiple_cards(cards: Vec<DbCard>) -> String {
     let mut card_name_strings = String::new();
     for card in cards {
         card_name_strings.push_str(&card.name);
+        match card.oc_name {
+            None => (),
+            Some(oc_name) => card_name_strings.push_str(&format!(" // {}", oc_name).to_string()),
+        }
         card_name_strings.push('\n');
     }
     let _ = child_stdin.write_all(card_name_strings.as_bytes());
@@ -80,7 +84,11 @@ fn rofi_select_from_multiple_cards(cards: Vec<DbCard>) -> String {
     let output = String::from_utf8(output.stdout.clone()).unwrap();
     // output comes with a newline
     let output = output.trim();
-    output.to_string()
+    let slashes_index = output.find(" // ");
+    match slashes_index {
+        None => output.to_string(),
+        Some(i) => output[..i].to_string(),
+    }
 }
 
 fn rofi_get_filename() -> String {
@@ -142,7 +150,6 @@ fn main() {
                 }
                 CardMatchResult::MultipleCardsMatch(cards) => {
                     let selected_card = rofi_select_from_multiple_cards(cards);
-                    dbg!(&selected_card);
                     let selected_card =
                         get_card_by_name(&selected_card, GetNameType::Name).unwrap();
                     rofi_print_card(&selected_card);
@@ -154,7 +161,6 @@ fn main() {
         }
         CardMatchResult::MultipleCardsMatch(cards) => {
             let selected_card = rofi_select_from_multiple_cards(cards);
-            dbg!(&selected_card);
             let selected_card = get_card_by_name(&selected_card, GetNameType::Name).unwrap();
             rofi_print_card(&selected_card);
         }
