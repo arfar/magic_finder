@@ -53,9 +53,7 @@ impl fmt::Display for DbCard {
             None => write!(f, "{}", self.name)?,
         }
         write!(f, "\n{}", self.type_line)?;
-        if let Some(ot) = &self.oracle_text {
-            write!(f, "\n{}", ot)?
-        }
+        write!(f, "\n{}", &self.oracle_text)?;
 
         if let Some(pt) = &self.power_toughness {
             write!(f, "\n{}", pt)?
@@ -115,7 +113,7 @@ pub struct DbCard {
     pub scryfall_uuid: [u8; 16],
     pub name: String,
     pub type_line: String,
-    pub oracle_text: Option<String>,
+    pub oracle_text: String,
     pub power_toughness: Option<String>,
     pub loyalty: Option<String>,
     pub mana_cost: Option<String>,
@@ -349,7 +347,7 @@ fn get_double_card(card: &ScryfallCard) -> DbCard {
         scryfall_uuid: uuid,
         name: first_face.name.clone(),
         type_line: first_face.type_line.clone().unwrap().clone(),
-        oracle_text: Some(first_oracle_text),
+        oracle_text: first_oracle_text,
         power_toughness: first_power_toughness,
         loyalty: first_face.loyalty.clone(),
         mana_cost: first_face.mana_cost.clone(),
@@ -404,7 +402,7 @@ fn get_omenpath_cards() -> Vec<DbCard> {
             scryfall_uuid: uuid,
             name: card_name,
             type_line: card.type_line,
-            oracle_text: Some(oracle_text),
+            oracle_text: oracle_text,
             power_toughness: power_toughness,
             loyalty: card.loyalty,
             mana_cost: card.mana_cost,
@@ -419,6 +417,7 @@ fn get_omenpath_cards() -> Vec<DbCard> {
 pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
     let ac = fs::read_to_string(file).unwrap();
     let ac: Vec<ScryfallCard> = serde_json::from_str(&ac).unwrap();
+    let omenpath_cards = get_omenpath_cards();
     let tx = conn.transaction().unwrap();
     for card in ac {
         // This should hopefully filter out Planes cards (but not Planeswalkers!)
@@ -440,6 +439,7 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
             continue;
         }
 
+        // FIXME - currently words from Omenpath and the second face of cards won't work
         for word in card.name.split_whitespace() {
             let word = deunicode(&word.to_lowercase());
             if word.contains("//") {
@@ -452,7 +452,7 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
             );
             if let Err(e) = res {
                 dbg!(e);
-                panic!("Error adding the card: {:?}", card);
+                panic!("Error adding the word: {:?}", card);
             }
         }
 
@@ -461,28 +461,27 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
             continue;
         }
 
-        let power_toughness = match card.power {
-            Some(ref p) => Some(format!("{}/{}", p, card.toughness.clone().unwrap())),
-            None => None,
+        let card = DbCard {
+            scryfall_uuid: card.id.to_bytes_le(),
+            name: card.name,
+            type_line: card.type_line,
+            oracle_text: match card.oracle_text {
+                Some(ref ot) => ot.to_string(),
+                None => "<No Oracle Text>".to_string(),
+            },
+            power_toughness: match card.power {
+                Some(ref p) => Some(format!("{}/{}", p, card.toughness.clone().unwrap())),
+                None => None,
+            },
+            loyalty: card.loyalty,
+            mana_cost: card.mana_cost,
+            scryfall_uri: Some(card.scryfall_uri),
+            ..Default::default()
         };
-        let oracle_text = match card.oracle_text {
-            Some(ref ot) => ot.to_string(),
-            None => "<No Oracle Text>".to_string(),
-        };
-        let uuid: [u8; 16] = card.id.to_bytes_le();
-        let res = tx.execute(
-            "INSERT INTO cards (scryfall_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-            params![uuid, card.name, card.type_line, oracle_text, power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri],
-        );
-        if let Err(e) = res {
-            dbg!(e);
-            panic!("Error adding the card: {:?}", &card);
-        }
+        insert_card(&tx, &card);
     }
 
-    // TODO - probably don't put an HTTP GET request in the middle of the db transaction.
-    let cards = get_omenpath_cards();
-    for card in cards {
+    for card in omenpath_cards {
         insert_card(&tx, &card);
     }
 
