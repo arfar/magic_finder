@@ -1,3 +1,4 @@
+use magic_finder::get_all_names_for_card;
 use magic_finder::get_card_by_name;
 use magic_finder::get_db_connection;
 use magic_finder::init_db;
@@ -31,7 +32,7 @@ fn initial_rofi() -> String {
 }
 
 fn rofi_print_card(card: &DbCard) {
-    let display_string = match card.oc_name {
+    let mut display_string = match card.oc_name {
         Some(ref _c) => {
             let mut display_string = String::new();
             display_string.push_str(&card.to_string());
@@ -39,6 +40,16 @@ fn rofi_print_card(card: &DbCard) {
         }
         None => card.to_string(),
     };
+    let names_for_card = get_all_names_for_card(card);
+    if names_for_card.len() > 1 {
+        display_string.push_str("\nThis card is also known as:");
+        for card_name in names_for_card {
+            if card_name.contains(&card.name) {
+                continue;
+            }
+            display_string.push_str(&format!(" {}", card_name).to_string());
+        }
+    }
     let _ = Command::new("rofi").args(["-e", &display_string]).output();
 }
 
@@ -84,6 +95,8 @@ fn rofi_select_from_multiple_cards(cards: Vec<DbCard>) -> String {
     let output = String::from_utf8(output.stdout.clone()).unwrap();
     // output comes with a newline
     let output = output.trim();
+    // This is more than a bit of a hack... would be nice to include the actual data alongside the strings.
+    //  Absolutely don't know how to do that with rofi, if at all possible
     let slashes_index = output.find(" // ");
     match slashes_index {
         None => output.to_string(),

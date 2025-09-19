@@ -169,8 +169,7 @@ pub fn find_matching_cards_scryfall_style(percentaged_search_strings: &[String])
     let sqlite_file = get_local_data_sqlite_file();
     let conn = Connection::open(sqlite_file).unwrap();
 
-    let mut sql: String = "SELECT scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost
-             FROM cards WHERE".into();
+    let mut sql: String = "SELECT scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost FROM cards WHERE".into();
     for i in 0..percentaged_search_strings.len() {
         sql.push_str(&format!(
             " ( LOWER(name) LIKE (?{}) OR LOWER(oc_name) LIKE (?{}) ) AND",
@@ -183,7 +182,6 @@ pub fn find_matching_cards_scryfall_style(percentaged_search_strings: &[String])
     sql.pop();
     sql.pop();
     sql.pop();
-    dbg!(&sql);
     let mut stmt = conn.prepare(&sql).unwrap();
     stmt.query_map(params_from_iter(percentaged_search_strings), |row| {
         Ok(DbCard {
@@ -209,13 +207,12 @@ pub fn find_matching_cards_scryfall_style(percentaged_search_strings: &[String])
     .collect()
 }
 
-pub fn find_card_with_same_oracle_uuid(card: &DbCard) -> Option<DbCard> {
+pub fn get_all_names_for_card(card: &DbCard) -> Vec<String> {
     let sqlite_file = get_local_data_sqlite_file();
     let conn = Connection::open(sqlite_file).unwrap();
     let mut stmt = conn
         .prepare(
-            "SELECT scryfall_uuid, oracle_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost
-             FROM oracle_uuid = (?1) ",
+            "SELECT scryfall_uuid, oracle_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost FROM cards WHERE oracle_uuid = (?1) ",
         )
         .unwrap();
     let cards: Vec<DbCard> = stmt
@@ -242,8 +239,12 @@ pub fn find_card_with_same_oracle_uuid(card: &DbCard) -> Option<DbCard> {
         .filter_map(|res| res.ok())
         .collect();
 
-    dbg!("{}", cards);
-    None
+    let mut card_names: Vec<String> = Vec::new();
+    for card in cards {
+        // No double faced cards with 2 names... so far... this will need to be fixed when that happens
+        card_names.push(card.name.clone());
+    }
+    card_names
 }
 
 pub fn find_matching_cards(name: &str) -> Vec<DbCard> {
