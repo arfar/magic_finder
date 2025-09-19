@@ -172,13 +172,18 @@ pub fn find_matching_cards_scryfall_style(percentaged_search_strings: &[String])
     let mut sql: String = "SELECT scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost
              FROM cards WHERE".into();
     for i in 0..percentaged_search_strings.len() {
-        sql.push_str(&format!(" LOWER(name) LIKE (?{}) AND", i + 1));
+        sql.push_str(&format!(
+            " ( LOWER(name) LIKE (?{}) OR LOWER(oc_name) LIKE (?{}) ) AND",
+            i + 1,
+            i + 1
+        ));
     }
     // pop the " AND"
     sql.pop();
     sql.pop();
     sql.pop();
     sql.pop();
+    dbg!(&sql);
     let mut stmt = conn.prepare(&sql).unwrap();
     stmt.query_map(params_from_iter(percentaged_search_strings), |row| {
         Ok(DbCard {
