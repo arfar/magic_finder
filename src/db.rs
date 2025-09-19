@@ -320,7 +320,7 @@ pub fn init_db() {
         .unwrap();
 }
 
-fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
+fn get_double_card(card: &ScryfallCard) -> DbCard {
     let card_faces = card.card_faces.as_ref().unwrap();
     let first_face = card_faces.first().unwrap();
     let second_face = card_faces.get(1).unwrap();
@@ -345,21 +345,38 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
         None => "<No Oracle Text>".to_string(),
     };
 
-    let res = tx.execute(
-        "INSERT INTO cards (scryfall_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_mana_cost) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)
-         ON CONFLICT(scryfall_uuid) DO NOTHING",
-            params![uuid, first_face.name, first_face.type_line, first_oracle_text, first_power_toughness, first_face.loyalty, first_face.mana_cost, card.scryfall_uri, second_face.name, second_face.type_line, second_oracle_text, second_power_toughness, second_face.mana_cost],
-    );
-
-    if let Err(e) = res {
-        dbg!(e);
-        panic!("Error adding the card: {:?}", card);
+    DbCard {
+        scryfall_uuid: uuid,
+        name: first_face.name.clone(),
+        type_line: first_face.type_line.clone().unwrap().clone(),
+        oracle_text: Some(first_oracle_text),
+        power_toughness: first_power_toughness,
+        loyalty: first_face.loyalty.clone(),
+        mana_cost: first_face.mana_cost.clone(),
+        scryfall_uri: Some(card.scryfall_uri.clone()),
+        oc_name: Some(second_face.name.clone()),
+        oc_type_line: second_face.type_line.clone(),
+        oc_oracle_text: Some(second_oracle_text),
+        oc_power_toughness: second_power_toughness,
+        oc_loyalty: second_face.loyalty.clone(),
+        oc_mana_cost: second_face.mana_cost.clone(),
     }
 }
 
 pub fn get_db_connection() -> Connection {
     let sqlite_file = get_local_data_sqlite_file();
     Connection::open(sqlite_file).unwrap()
+}
+
+fn insert_card(tx: &Transaction, card: &DbCard) {
+    let res = tx.execute(
+            "INSERT INTO cards (scryfall_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_mana_cost) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
+            params![card.scryfall_uuid, card.name, card.type_line, card.oracle_text, card.power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri, card.oc_name, card.oc_type_line, card.oc_oracle_text, card.oc_power_toughness, card.oc_mana_cost],
+        );
+    if let Err(e) = res {
+        dbg!(e);
+        panic!("Error adding the card: {:?}", &card);
+    }
 }
 
 fn get_omenpath_cards() -> Vec<DbCard> {
@@ -440,7 +457,7 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
         }
 
         if card.card_faces.is_some() {
-            add_double_card(&tx, &card);
+            get_double_card(&card);
             continue;
         }
 
@@ -466,14 +483,7 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
     // TODO - probably don't put an HTTP GET request in the middle of the db transaction.
     let cards = get_omenpath_cards();
     for card in cards {
-        let res = tx.execute(
-            "INSERT INTO cards (scryfall_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-            params![card.scryfall_uuid, card.name, card.type_line, card.oracle_text, card.power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri],
-        );
-        if let Err(e) = res {
-            dbg!(e);
-            panic!("Error adding the card: {:?}", &card);
-        }
+        insert_card(&tx, &card);
     }
 
     let res = tx.commit();
