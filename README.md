@@ -191,6 +191,7 @@ cp build/rofi ~/bin
    - Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
    - I don't think this is actually possible with `rofi`.
  * FEATURE Show the Omenpath name if you search for the Spider card (and vice-versa).
+ * FIXME If no card misspellings options are available, just exit with error (try searching "avoidance")
  * FEATURE For misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
  * IMPROVEMENTS Add more tests and improve the ones in `deser.rs`
  * IMPROVEMENTS Reduce `deser.rs` to only relevant key:value pairs or seperate into different repo/module entirely. It could maybe be useful for others.

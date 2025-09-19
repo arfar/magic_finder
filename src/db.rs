@@ -110,7 +110,7 @@ impl PartialEq for DbCard {
 
 impl Eq for DbCard {}
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct DbCard {
     pub scryfall_uuid: [u8; 16],
     pub name: String,
@@ -362,7 +362,8 @@ pub fn get_db_connection() -> Connection {
     Connection::open(sqlite_file).unwrap()
 }
 
-fn add_omenpath_cards(tx: &Transaction) {
+fn get_omenpath_cards() -> Vec<DbCard> {
+    let mut omenpath_db_cards: Vec<DbCard> = Vec::new();
     let omenpath_cards = download_omenpath_set();
 
     // TODO - deduplicate these 3 functions. Preparing the DbCard in each function then calling one "insert" should
@@ -372,21 +373,6 @@ fn add_omenpath_cards(tx: &Transaction) {
             Some(ref printed_name) => printed_name.clone(),
             None => card.name.clone(),
         };
-        for word in card_name.split_whitespace() {
-            let word = deunicode(&word.to_lowercase());
-            if word.contains("//") {
-                continue;
-            }
-            let res = tx.execute(
-                "INSERT INTO mtg_words (word) VALUES (?1)
-                     ON CONFLICT (word) DO NOTHING;",
-                [word.replace(",", "")],
-            );
-            if let Err(e) = res {
-                dbg!(e);
-                panic!("Error adding the card: {:?}", card);
-            }
-        }
         let power_toughness = match card.power {
             Some(ref p) => Some(format!("{}/{}", p, card.toughness.clone().unwrap())),
             None => None,
@@ -397,15 +383,20 @@ fn add_omenpath_cards(tx: &Transaction) {
         };
         let uuid: [u8; 16] = card.id.to_bytes_le();
         // I don't think there's any double cards in here... fingers crossed
-        let res = tx.execute(
-            "INSERT INTO cards (scryfall_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-            params![uuid, card_name, card.type_line, oracle_text, power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri],
-        );
-        if let Err(e) = res {
-            dbg!(e);
-            panic!("Error adding the card: {:?}", &card);
-        }
+        let card = DbCard {
+            scryfall_uuid: uuid,
+            name: card_name,
+            type_line: card.type_line,
+            oracle_text: Some(oracle_text),
+            power_toughness: power_toughness,
+            loyalty: card.loyalty,
+            mana_cost: card.mana_cost,
+            scryfall_uri: Some(card.scryfall_uri),
+            ..Default::default()
+        };
+        omenpath_db_cards.push(card);
     }
+    omenpath_db_cards
 }
 
 pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
@@ -473,7 +464,17 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
     }
 
     // TODO - probably don't put an HTTP GET request in the middle of the db transaction.
-    add_omenpath_cards(&tx);
+    let cards = get_omenpath_cards();
+    for card in cards {
+        let res = tx.execute(
+            "INSERT INTO cards (scryfall_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params![card.scryfall_uuid, card.name, card.type_line, card.oracle_text, card.power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri],
+        );
+        if let Err(e) = res {
+            dbg!(e);
+            panic!("Error adding the card: {:?}", &card);
+        }
+    }
 
     let res = tx.commit();
     if let Err(e) = res {
