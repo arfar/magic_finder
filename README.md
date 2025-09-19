@@ -182,25 +182,25 @@ cp build/rofi ~/bin
 
 ## TODO / FIXME / Potential FEATURES / Code improvements
  * FIXME Word correction doesn't work if multiple words are provided and 1 of the words is spelled correctly
-   - for example, try searching "epser origins" and you'll get questions about how to spell "origins" (which is correct) first rather than the actually incorrect word
+   - for example, try searching "epser origins" and you'll get questions about how to spell "origins" (which is correct) first rather than the actually incorrect word.
+ * FIXME When quitting out early from `rofi` (by using Ctrl+g for example), should quit the whole program early instead of showing more useless pages I probably don't want.
  * FEATURE Do some kind of "Display All" kind of thing.
    - For example, searching "Tezzeret" gives a bunch of cards and I'm not sure which one I want (other than probably the type - but there's still a bunch of Planeswalkers)
  * FEATURE Make the Scryfall URI (L?) clickable in `rofi`.
    - Optionally, put the Scryfall URI into the clipboard.
    - Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
    - I don't think this is actually possible with `rofi`.
+ * FEATURE Show the Omenpath name if you search for the Spider card (and vice-versa).
  * FEATURE For misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
  * IMPROVEMENTS Add more tests and improve the ones in `deser.rs`
  * IMPROVEMENTS Reduce `deser.rs` to only relevant key:value pairs or seperate into different repo/module entirely. It could maybe be useful for others.
-   - Optionally/Alternatively delete the stuff in `deser.rs` that I don't use.
  * FEATURE Add some classic nicknames. Examples include:
    - Bob -> Dark Confidant
    - AK -> Accumulated Knowledge
    - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
- * FEATURE Display images
+ * FEATURE Display images (almost certainly won't implement this).
  * FIXME There are some cards with the same name (e.g. The Superlatorium and B.F.M) which are listed more than once.
    - Don't think I will fix this... how often are you searching for this anyways?!?
- * FEATURE Show the Omenpath name if you search for the Spider card (and vice-versa).
  * FIXME I'm not very happy about downloading the Omenpath cards separately via the Scryfall API. I _could_ look into using the `all-cards` bulk, but that would be even more downloading (and there's a painful set of ~30 cards that don't have typelines so I can't instantly/easily deser them).
 
 ## Thanks
