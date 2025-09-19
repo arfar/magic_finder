@@ -414,6 +414,24 @@ fn get_omenpath_cards() -> Vec<DbCard> {
     omenpath_db_cards
 }
 
+fn insert_words(tx: &Transaction, card: &DbCard) {
+    for word in card.name.split_whitespace() {
+        let word = deunicode(&word.to_lowercase());
+        if word.contains("//") {
+            continue;
+        }
+        let res = tx.execute(
+            "INSERT INTO mtg_words (word) VALUES (?1)
+                     ON CONFLICT (word) DO NOTHING;",
+            [word.replace(",", "")],
+        );
+        if let Err(e) = res {
+            dbg!(e);
+            panic!("Error adding the word: {:?}", card);
+        }
+    }
+}
+
 pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
     let ac = fs::read_to_string(file).unwrap();
     let ac: Vec<ScryfallCard> = serde_json::from_str(&ac).unwrap();
@@ -439,25 +457,10 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
             continue;
         }
 
-        // FIXME - currently words from Omenpath and the second face of cards won't work
-        for word in card.name.split_whitespace() {
-            let word = deunicode(&word.to_lowercase());
-            if word.contains("//") {
-                continue;
-            }
-            let res = tx.execute(
-                "INSERT INTO mtg_words (word) VALUES (?1)
-                     ON CONFLICT (word) DO NOTHING;",
-                [word.replace(",", "")],
-            );
-            if let Err(e) = res {
-                dbg!(e);
-                panic!("Error adding the word: {:?}", card);
-            }
-        }
-
         if card.card_faces.is_some() {
-            get_double_card(&card);
+            let card = get_double_card(&card);
+            insert_card(&tx, &card);
+            insert_words(&tx, &card);
             continue;
         }
 
@@ -479,10 +482,12 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
             ..Default::default()
         };
         insert_card(&tx, &card);
+        insert_words(&tx, &card);
     }
 
     for card in omenpath_cards {
         insert_card(&tx, &card);
+        insert_words(&tx, &card);
     }
 
     let res = tx.commit();
