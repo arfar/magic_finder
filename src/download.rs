@@ -1,6 +1,5 @@
 use super::deser::{ScryfallCard, ScryfallSetSearch};
 use std::{thread, time};
-use ureq;
 
 const SCRYFALL_OMENPATH_SEARCH_API: &str =
     "https://api.scryfall.com/cards/search?order=set&q=e%3Aom1&unique=prints";

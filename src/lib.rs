@@ -4,9 +4,8 @@ pub use crate::deser::ScryfallCard;
 mod db;
 pub use db::{
     check_db_exists_and_populated, find_matching_cards, find_matching_cards_scryfall_style,
-    get_all_card_names, get_all_lowercase_card_names, get_all_mtg_words, get_card_by_name,
-    get_db_connection, init_db, percentage_search_strings, update_db_with_file, DbCard,
-    DbExistanceErrors, GetNameType,
+    get_all_card_names, get_all_mtg_words, get_card_by_name, get_db_connection, init_db,
+    percentage_search_strings, update_db_with_file, DbCard, DbExistanceErrors, GetNameType,
 };
 
 mod utils;
