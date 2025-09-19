@@ -6,6 +6,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use super::deser::{ScryfallCard, SetType};
+use super::download::download_omenpath_set;
 use super::utils::{create_local_data_folder, get_local_data_sqlite_file};
 
 pub fn get_all_card_names() -> Vec<String> {
@@ -345,7 +346,8 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
     };
 
     let res = tx.execute(
-            "INSERT INTO cards (scryfall_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_mana_cost) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
+        "INSERT INTO cards (scryfall_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_mana_cost) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)
+         ON CONFLICT(scryfall_uuid) DO NOTHING",
             params![uuid, first_face.name, first_face.type_line, first_oracle_text, first_power_toughness, first_face.loyalty, first_face.mana_cost, card.scryfall_uri, second_face.name, second_face.type_line, second_oracle_text, second_power_toughness, second_face.mana_cost],
     );
 
@@ -358,6 +360,53 @@ fn add_double_card(tx: &Transaction, card: &ScryfallCard) {
 pub fn get_db_connection() -> Connection {
     let sqlite_file = get_local_data_sqlite_file();
     Connection::open(sqlite_file).unwrap()
+}
+
+fn add_omenpath_cards(tx: &Transaction) {
+    let omenpath_cards = download_omenpath_set();
+
+    // TODO - deduplicate these 3 functions. Preparing the DbCard in each function then calling one "insert" should
+    //        work better I think
+    for card in omenpath_cards {
+        let card_name = match card.printed_name {
+            Some(ref printed_name) => printed_name.clone(),
+            None => card.name.clone(),
+        };
+        for word in card_name.split_whitespace() {
+            let word = deunicode(&word.to_lowercase());
+            if word.contains("//") {
+                continue;
+            }
+            let res = tx.execute(
+                "INSERT INTO mtg_words (word) VALUES (?1)
+                     ON CONFLICT (word) DO NOTHING;",
+                [word.replace(",", "")],
+            );
+            if let Err(e) = res {
+                dbg!(e);
+                panic!("Error adding the card: {:?}", card);
+            }
+        }
+        let power_toughness = match card.power {
+            Some(ref p) => Some(format!("{}/{}", p, card.toughness.clone().unwrap())),
+            None => None,
+        };
+        let oracle_text = match card.oracle_text {
+            Some(ref ot) => ot.to_string(),
+            None => "<No Oracle Text>".to_string(),
+        };
+        let uuid: [u8; 16] = card.id.to_bytes_le();
+        // I don't think there's any double cards in here... fingers crossed
+        let res = tx.execute(
+            "INSERT INTO cards (scryfall_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
+                 ON CONFLICT (scryfall_uuid) DO NOTHING",
+            params![uuid, card_name, card.type_line, oracle_text, power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri],
+        );
+        if let Err(e) = res {
+            dbg!(e);
+            panic!("Error adding the card: {:?}", &card);
+        }
+    }
 }
 
 pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
@@ -407,7 +456,6 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
         }
             */
 
-        // This is a temporary fixes for double face things, split cards, and other issues
         if card.card_faces.is_some() {
             add_double_card(&tx, &card);
             continue;
@@ -423,7 +471,8 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
         };
         let uuid: [u8; 16] = card.id.to_bytes_le();
         let res = tx.execute(
-            "INSERT INTO cards (scryfall_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            "INSERT INTO cards (scryfall_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
+                 ON CONFLICT (scryfall_uuid) DO NOTHING",
             params![uuid, card.name, card.type_line, oracle_text, power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri],
         );
         if let Err(e) = res {
@@ -431,6 +480,10 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
             panic!("Error adding the card: {:?}", &card);
         }
     }
+
+    // TODO - probably don't put an HTTP GET request in the middle of the db transaction.
+    add_omenpath_cards(&tx);
+
     let res = tx.commit();
     if let Err(e) = res {
         dbg!(e);
@@ -457,6 +510,7 @@ mod tests {
         let conn = init_test_db_and_get_db_connection();
         let mut f = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         f.push("test_files/oracle-cards.json");
+
         assert!(f.exists(), "You need to download the oracle-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to oracle-cards.json");
         update_db_with_file(f, conn);
     }

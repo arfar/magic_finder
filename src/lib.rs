@@ -12,6 +12,9 @@ pub use db::{
 mod utils;
 pub use utils::{create_local_data_folder, get_local_data_folder, get_local_data_sqlite_file};
 
+mod download;
+pub use download::download_omenpath_set;
+
 #[derive(Debug)]
 pub enum CardMatchResult {
     DidYouMean(Vec<String>),

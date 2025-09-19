@@ -3,6 +3,17 @@ use serde::Deserialize;
 use serde_json::Value;
 use uuid::Uuid;
 
+#[allow(dead_code)]
+#[derive(Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct ScryfallSetSearch {
+    pub object: String,
+    pub total_cards: u16,
+    pub has_more: bool,
+    pub next_page: Option<String>,
+    pub data: Vec<ScryfallCard>,
+}
+
 // Info from here:
 // https://scryfall.com/docs/api/cards
 #[allow(dead_code)]
@@ -695,6 +706,16 @@ mod tests {
         assert!(f.exists());
         let fc = fs::read_to_string(f).unwrap();
         let _lg: ScryfallCard = serde_json::from_str(&fc).unwrap();
+    }
+
+    #[test]
+    fn tmp_filtering_lines_test() {
+        let weird_cards = weird_cards();
+        print!("grep -v ");
+        for card in weird_cards {
+            print!(" -e \"{}\"", card);
+        }
+        println!("oracle-cards.json > temp && mv temp oracle-cards.json");
     }
 
     #[test]
