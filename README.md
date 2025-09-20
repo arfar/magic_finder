@@ -47,7 +47,7 @@ And finally hit enter or double click on the card you want to get the output you
 
 ## Example Usage Without Rofi
 
-I have not coded any sort of similar "interactive" mode for the `magic_finder` tool itself. As such, you'll need to do the same steps yourself, but manually and without interactive search.
+I have not coded any sort of similar "interactive" mode for the `magic_finder` tool itself. As such, you'll need to do the same steps yourself manually and without interactive search.
 
 ```
 $ magic_finder_cli blakc
@@ -116,13 +116,13 @@ For me on Ubuntu, I went to the `Settings` application. Then `Keyboard` > `Keybo
 With this set up, pressing `SUPER + s` will provide a basic `dmenu`-esque `rofi` menu where you type the card you're looking for - and you should just be off.
 
 ### Once You Install and Updating the Database
-Go to the [Scryfall Bulk Download](https://scryfall.com/docs/api/bulk-data) page and download the Default Cards file. Should be aroung 500MB.
+Go to the [Scryfall Bulk Download](https://scryfall.com/docs/api/bulk-data) page and download the Default Cards file. Should be aroung 500MB and looks something like `default-cards-20250909090320.json`.
 
 Use either:
- * `magic_finder_rofi --update` and navigate to your Oracle Cards file, or
+ * `magic_finder_rofi --update` and navigate to your Default Cards file, or
  * `magic_finder_cli --update <LOCATION_OF_FILE>` where `<LOCATION_OF_FILE>` is where you downloaded the file to.
  
-From there, it should Just Work (TM). If not, try updating this repo. If it still doesn't work, log a ticket. It's probably going to something with Scryfall updating their schema that I haven't accounted for.
+From there, it should Just Work (TM). If not, try updating this repo (`cd magic_finder` `git pull -r` `cargo install --path .`). If it still doesn't work, log a ticket. It's probably going to something with Scryfall updating their schema that I haven't accounted for.
 
 NOTE: Updating *will* delete the previous db - that shouldn't be a problem though, because you shouldn't be mucking around with that that unless you really know what you're doing.
 
@@ -140,7 +140,7 @@ From within this `magic_finder` repo folder, run `cargo uninstall`. This will re
  
 ## Why this exists
 
-I like watch Magic the Gathering (TM) videos, expecially while coding, working, writing, whatever. Often, I don't know what card they're talking about. They'll often say the card name (sometimes a nickname - this tool doesn't help with that), and show it on the screen briefly (or in a tiny/obscured view), and I'll miss what it actually does. When this happens, I need to open a tab on my browser, go to [Scryfall](scryfall.com), type in the name, (sometimes) click the specific card, and the view it. This takes 2-3 page loads, changing my active window and is just a bit of a pain.
+I like watch Magic the Gathering (TM) videos, expecially while coding, working, writing, whatever. Often, I don't know what card they're talking about. They'll often say the card name (sometimes a nickname - this tool doesn't help with that), and show it on the screen briefly (or in a tiny/obscured view), and I'll miss what it actually does. When this happens, I need to open a tab on my browser, go to [Scryfall](scryfall.com), type in the name, (sometimes) click the specific card, and the view it. This takes 2-3 page loads and annoying me with an active window / big context switch.
 
 This tool in coordination with `rofi` enables me to hit `META+S`, type in the card name, navigate to the card (if needed) with my keyboard, and display the card. No browser, no HTTP, lower context switch, instant card displayed right there, and goes away when I press anything else.
 

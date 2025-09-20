@@ -152,7 +152,13 @@ fn main() {
     match card_search_result {
         CardMatchResult::DidYouMean(magic_words) => {
             let did_you_mean_word = vec![rofi_show_did_you_mean(&magic_words)];
+            if let Some(word) = did_you_mean_word.get(0) {
+                if word.is_empty() {
+                    panic!("You probably exited early. magic_finder was about to list all cards - a pointless exercise");
+                }
+            }
             let card_search_result = try_match_card(&did_you_mean_word);
+            dbg!(&card_search_result);
             match card_search_result {
                 // This code is a bit of a double up of next codebock
                 CardMatchResult::DidYouMean(_) => {
@@ -163,6 +169,9 @@ fn main() {
                 }
                 CardMatchResult::MultipleCardsMatch(cards) => {
                     let selected_card = rofi_select_from_multiple_cards(cards);
+                    if selected_card.is_empty() {
+                        panic!("You probably exited early. You didn't select a card");
+                    }
                     let selected_card =
                         get_card_by_name(&selected_card, GetNameType::Name).unwrap();
                     rofi_print_card(&selected_card);
@@ -174,6 +183,9 @@ fn main() {
         }
         CardMatchResult::MultipleCardsMatch(cards) => {
             let selected_card = rofi_select_from_multiple_cards(cards);
+            if selected_card.is_empty() {
+                panic!("You probably exited early. You didn't select a card");
+            }
             let selected_card = get_card_by_name(&selected_card, GetNameType::Name).unwrap();
             rofi_print_card(&selected_card);
         }
