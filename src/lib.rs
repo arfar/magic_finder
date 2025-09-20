@@ -56,11 +56,24 @@ pub fn try_match_card(search_text: &Vec<String>) -> CardMatchResult {
     }
 }
 
-pub fn print_card(card: &DbCard) {
-    println!("{}", card);
-    if let Some(oc) = &card.oc_name {
-        println!("----------------------------");
-        let card = get_card_by_name(oc, GetNameType::Name).unwrap();
-        println!("{}", card);
+pub fn get_display_string(card: &DbCard) -> String {
+    let mut display_string = match card.oc_name {
+        Some(ref _c) => {
+            let mut display_string = String::new();
+            display_string.push_str(&card.to_string());
+            display_string
+        }
+        None => card.to_string(),
+    };
+    let names_for_card = get_all_names_for_card(card);
+    if names_for_card.len() > 1 {
+        display_string.push_str("\nThis card is also known as:");
+        for card_name in names_for_card {
+            if card_name.contains(&card.name) {
+                continue;
+            }
+            display_string.push_str(&format!(" {}", card_name).to_string());
+        }
     }
+    display_string
 }

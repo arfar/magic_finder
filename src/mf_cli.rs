@@ -4,7 +4,6 @@ use magic_finder::get_card_by_name;
 use magic_finder::get_db_connection;
 use magic_finder::get_local_data_folder;
 use magic_finder::init_db;
-use magic_finder::print_card;
 use magic_finder::try_match_card;
 use magic_finder::update_db_with_file;
 use magic_finder::CardMatchResult;
@@ -67,7 +66,7 @@ fn exact_search(search_strings: Vec<String>) -> MtgCardExit {
             MtgCardExit::NoExactMatchCard
         }
         Some(c) => {
-            print_card(&c);
+            println!("{}", magic_finder::get_display_string(&c));
             MtgCardExit::ExactCardFound
         }
     }
@@ -129,7 +128,7 @@ fn main() -> MtgCardExit {
             MtgCardExit::MultipleCardsMatch
         }
         CardMatchResult::ExactCardFound(card) => {
-            print_card(&card);
+            println!("{}", magic_finder::get_display_string(&card));
             MtgCardExit::ExactCardFound
         }
     }

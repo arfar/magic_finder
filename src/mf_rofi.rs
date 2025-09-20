@@ -1,6 +1,6 @@
-use magic_finder::get_all_names_for_card;
 use magic_finder::get_card_by_name;
 use magic_finder::get_db_connection;
+use magic_finder::get_display_string;
 use magic_finder::init_db;
 use magic_finder::try_match_card;
 use magic_finder::update_db_with_file;
@@ -32,24 +32,7 @@ fn initial_rofi() -> String {
 }
 
 fn rofi_print_card(card: &DbCard) {
-    let mut display_string = match card.oc_name {
-        Some(ref _c) => {
-            let mut display_string = String::new();
-            display_string.push_str(&card.to_string());
-            display_string
-        }
-        None => card.to_string(),
-    };
-    let names_for_card = get_all_names_for_card(card);
-    if names_for_card.len() > 1 {
-        display_string.push_str("\nThis card is also known as:");
-        for card_name in names_for_card {
-            if card_name.contains(&card.name) {
-                continue;
-            }
-            display_string.push_str(&format!(" {}", card_name).to_string());
-        }
-    }
+    let display_string = get_display_string(&card);
     let _ = Command::new("rofi").args(["-e", &display_string]).output();
 }
 
