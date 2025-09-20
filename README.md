@@ -116,7 +116,7 @@ For me on Ubuntu, I went to the `Settings` application. Then `Keyboard` > `Keybo
 With this set up, pressing `SUPER + s` will provide a basic `dmenu`-esque `rofi` menu where you type the card you're looking for - and you should just be off.
 
 ### Once You Install and Updating the Database
-Go to the [Scryfall Bulk Download](https://scryfall.com/docs/api/bulk-data) page and download the Oracle Cards file. Should be 150MB-ish.
+Go to the [Scryfall Bulk Download](https://scryfall.com/docs/api/bulk-data) page and download the Default Cards file. Should be aroung 500MB.
 
 Use either:
  * `magic_finder_rofi --update` and navigate to your Oracle Cards file, or
@@ -194,7 +194,6 @@ cp build/rofi ~/bin
  * FIXME There's something wrong with the oracle text for the new cards. (see "Luis" or "Egrix", the refer to "Morlon" and "Gwenom" incorrectly).
    - This is a problem with the Scryfall API - it returns the Gwenom language. Won't fix here.
  * FIXME If no card misspellings options are available, just exit with error (try searching "avoidance")
- * FIXME "Will the Wise" isn't in there for some reason. Potentially some Universes Within issue. I think it's literally not in the data dump kind of annoyingly... I think I might need to consider going the `all-cards` route to capture all of these.
  * FEATURE For misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
  * IMPROVEMENTS Add more tests and improve the ones in `deser.rs`
  * IMPROVEMENTS Reduce `deser.rs` to only relevant key:value pairs or seperate into different repo/module entirely. It could maybe be useful for others.
@@ -205,7 +204,6 @@ cp build/rofi ~/bin
  * FEATURE Display images (almost certainly won't implement this).
  * FIXME There are some cards with the same name (e.g. The Superlatorium and B.F.M) which are listed more than once.
    - Don't think I will fix this... how often are you searching for this anyways?!?
- * FIXME I'm not very happy about downloading the Omenpath cards separately via the Scryfall API. I _could_ look into using the `all-cards` bulk, but that would be even more downloading (and there's a painful set of ~30 cards that don't have typelines so I can't instantly/easily deser them).
 
 ## Thanks
 

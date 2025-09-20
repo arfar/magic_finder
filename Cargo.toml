@@ -2,8 +2,7 @@
 name = "magic_finder"
 version = "0.1.0"
 edition = "2024"
-default-run = "filter_default_cards"
-#default-run = "magic_finder_rofi"
+default-run = "magic_finder_rofi"
 
 [dependencies]
 chrono = { version = "0.4.39", features = ["serde"] }
@@ -25,7 +24,3 @@ path = "src/mf_cli.rs"
 [[bin]]
 name = "magic_finder_rofi"
 path = "src/mf_rofi.rs"
-
-[[bin]]
-name = "filter_default_cards"
-path = "src/filter_default_cards.rs"
