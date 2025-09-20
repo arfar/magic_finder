@@ -1,12 +1,14 @@
 use deunicode::deunicode;
 use rusqlite::{params, params_from_iter, Connection, Transaction};
 use std::cmp::Ordering;
+use std::env;
 use std::fmt;
 use std::fs;
+use std::io::prelude::*;
+use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 
 use super::deser::{ScryfallCard, SetType};
-use super::download::download_omenpath_set;
 use super::utils::{create_local_data_folder, get_local_data_sqlite_file};
 
 pub fn get_all_card_names() -> Vec<String> {
@@ -368,8 +370,6 @@ fn get_double_card(card: &ScryfallCard) -> DbCard {
         Some(ot) => ot,
         None => "<No Oracle Text>".to_string(),
     };
-    let sf_uuid: [u8; 16] = card.id.to_bytes_le();
-    let oracle_uuid: [u8; 16] = card.oracle_id.unwrap().to_bytes_le();
 
     let second_power_toughness = second_face
         .power
@@ -381,8 +381,8 @@ fn get_double_card(card: &ScryfallCard) -> DbCard {
     };
 
     DbCard {
-        scryfall_uuid: sf_uuid,
-        oracle_uuid: oracle_uuid,
+        scryfall_uuid: card.id.to_bytes_le(),
+        oracle_uuid: card.oracle_id.unwrap().to_bytes_le(),
         name: first_face.name.clone(),
         type_line: first_face.type_line.clone().unwrap().clone(),
         oracle_text: first_oracle_text,
@@ -435,10 +435,50 @@ fn insert_words(tx: &Transaction, card: &DbCard) {
     }
 }
 
+// I'm horrendously embarrassed by this - but I think it works
+fn filter_out_non_oracle_cards(source_file: &PathBuf) -> PathBuf {
+    assert!(source_file.exists());
+    let ac = fs::File::open(source_file).unwrap();
+    let reader = BufReader::new(ac);
+
+    let mut dest_f_path = env::temp_dir();
+    dest_f_path.push("magic_finder_default-cards-filtered.json");
+    let res = fs::remove_file(&dest_f_path);
+    match res {
+        Ok(_) => (),
+        Err(e) => {
+            if e.raw_os_error().unwrap() == 2 {
+                // 2 = file doesn't exist - which is fine for us
+            } else {
+                panic!("{}", e);
+            }
+        }
+    }
+    let mut dest_f = fs::File::create(&dest_f_path).unwrap();
+
+    dest_f.write("[\n".as_bytes()).unwrap();
+    let mut first = true;
+    for mut line in reader.lines().flatten() {
+        line.pop();
+        let a_card: Result<ScryfallCard, serde_json::Error> = serde_json::from_str(line.as_ref());
+        if a_card.is_ok() {
+            if !first {
+                let _res = dest_f.write(",".as_bytes());
+            } else {
+                first = false;
+            }
+            dest_f.write(line.as_bytes()).unwrap();
+            dest_f.write("\n".as_bytes()).unwrap();
+        }
+    }
+    dest_f.write("]\n".as_bytes()).unwrap();
+    dest_f_path
+}
+
 pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
-    let ac = fs::read_to_string(file).unwrap();
+    let filtered_file = filter_out_non_oracle_cards(&file);
+    let ac = fs::read_to_string(&filtered_file).unwrap();
     let ac: Vec<ScryfallCard> = serde_json::from_str(&ac).unwrap();
-    //let omenpath_cards = get_omenpath_cards();
     let tx = conn.transaction().unwrap();
     for card in ac {
         // This should hopefully filter out Planes cards (but not Planeswalkers!)
@@ -481,7 +521,7 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
         let card = DbCard {
             scryfall_uuid: card.id.to_bytes_le(),
             oracle_uuid: card.oracle_id.unwrap().to_bytes_le(),
-            name: name,
+            name,
             type_line: card.type_line,
             oracle_text: match card.oracle_text {
                 Some(ref ot) => ot.to_string(),
@@ -499,19 +539,14 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
         insert_card(&tx, &card);
         insert_words(&tx, &card);
     }
-    /*
-        Should be already in there if using "default-cards"
-        for card in omenpath_cards {
-            insert_card(&tx, &card);
-            insert_words(&tx, &card);
-    }
-        */
 
     let res = tx.commit();
     if let Err(e) = res {
         dbg!(e);
+        fs::remove_file(&filtered_file).unwrap();
         panic!("Error commiting the db");
     }
+    fs::remove_file(&filtered_file).unwrap();
 }
 
 #[cfg(test)]

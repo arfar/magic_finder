@@ -21,20 +21,17 @@ fn main() {
 
     dest_f.write("[\n".as_bytes());
     let mut first = true;
-    for line in reader.lines() {
-        if let Ok(mut line) = line {
-            line.pop();
-            let a_card: Result<ScryfallCard, serde_json::Error> =
-                serde_json::from_str(line.as_ref());
-            if a_card.is_ok() {
-                if !first {
-                    let _res = dest_f.write(",".as_bytes());
-                } else {
-                    first = false;
-                }
-                let _res = dest_f.write(&line.as_bytes());
-                let _res = dest_f.write("\n".as_bytes());
+    for mut line in reader.lines().flatten() {
+        line.pop();
+        let a_card: Result<ScryfallCard, serde_json::Error> = serde_json::from_str(line.as_ref());
+        if a_card.is_ok() {
+            if !first {
+                let _res = dest_f.write(",".as_bytes());
+            } else {
+                first = false;
             }
+            let _res = dest_f.write(line.as_bytes());
+            let _res = dest_f.write("\n".as_bytes());
         }
     }
     dest_f.write("]\n".as_bytes());
