@@ -618,7 +618,9 @@ pub enum PromoTypes {
 
 #[allow(dead_code)]
 pub fn weird_cards() -> Vec<String> {
-    // These all seem to be double faced cards with the same "card" on both sides.
+    // These all seem to be double faced cards with the same "card" on both sides. I should figure
+    //  out a better way to identify these. I think one option _could_ be to check for whether the
+    //  "parent" card has an oracle_id
     vec![
         "018830b2-dff9-45f3-9cc2-dc5b2eec0e54".to_string(),
         "0489be0d-2117-46a8-97ab-31fe480685e2".to_string(),
@@ -671,6 +673,7 @@ pub fn weird_cards() -> Vec<String> {
         "8b5341ab-85a6-44b2-b738-1110e699c02b".to_string(),
         "8bcf942f-5afd-414e-a50d-00d884fe59da".to_string(),
         "9052f5c7-ee3b-457d-97ca-ac6b4518997c".to_string(),
+        "05fab477-5e35-4a47-a972-441bbddc3302".to_string(),
     ]
 }
 

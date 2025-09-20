@@ -1,5 +1,5 @@
 mod deser;
-pub use crate::deser::ScryfallCard;
+pub use deser::{weird_cards, ScryfallCard};
 
 mod db;
 pub use db::{

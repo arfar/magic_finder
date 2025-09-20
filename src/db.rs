@@ -317,7 +317,7 @@ const CREATE_CARDS_TABLE_SQL: &str = "
 CREATE TABLE cards (
     scryfall_uuid BLOB NOT NULL UNIQUE,
     oracle_uuid BLOG NOT NULL,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL UNIQUE,
     type_line TEXT,
     oracle_text TEXT,
     power_toughness TEXT,
@@ -406,7 +406,7 @@ pub fn get_db_connection() -> Connection {
 
 fn insert_card(tx: &Transaction, card: &DbCard) {
     let res = tx.execute(
-            "INSERT INTO cards (scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_mana_cost) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
+            "INSERT INTO cards (scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_mana_cost) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14) ON CONFLICT(scryfall_uuid) DO NOTHING ON CONFLICT(name) DO NOTHING",
             params![card.scryfall_uuid, card.oracle_uuid, card.name, card.type_line, card.oracle_text, card.power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri, card.oc_name, card.oc_type_line, card.oc_oracle_text, card.oc_power_toughness, card.oc_mana_cost],
         );
     if let Err(e) = res {
