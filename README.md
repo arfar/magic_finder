@@ -204,6 +204,8 @@ cp build/rofi ~/bin
  * FEATURE Display images (almost certainly won't implement this).
  * FIXME There are some cards with the same name (e.g. The Superlatorium and B.F.M) which are listed more than once.
    - Don't think I will fix this... how often are you searching for this anyways?!?
+ * TODO Investigate further as why "Gravedigger" gives the Spanish name. I think maybe I should filter out non-English cards.
+   - Or just leave it - it doesn't really hurt.
 
 ## Thanks
 
