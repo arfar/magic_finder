@@ -12,7 +12,6 @@ dir_spec = "0.5.0"
 rusqlite = { version = "0.37.0", features = ["bundled"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.138"
-tempfile = "3.20.0"
 textdistance = "1.1.1"
 ureq = { version = "3.0.12", features = ["json"] }
 uuid = { version = "1.12.1", features = ["v4", "serde"] }
