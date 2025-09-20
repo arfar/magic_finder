@@ -405,53 +405,16 @@ pub fn get_db_connection() -> Connection {
 }
 
 fn insert_card(tx: &Transaction, card: &DbCard) {
+    // FIXME - I need to use "printed name" when such a name exists.
+    //   Otherwise the second ON CONFLICT will most of the Kraza (c.f. Spider-Punk) cards.
     let res = tx.execute(
-            "INSERT INTO cards (scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_mana_cost) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14) ON CONFLICT(scryfall_uuid) DO NOTHING ON CONFLICT(name) DO NOTHING",
+        "INSERT INTO cards (scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_mana_cost) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14) ON CONFLICT(scryfall_uuid) DO NOTHING ON CONFLICT(name) DO NOTHING",
             params![card.scryfall_uuid, card.oracle_uuid, card.name, card.type_line, card.oracle_text, card.power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri, card.oc_name, card.oc_type_line, card.oc_oracle_text, card.oc_power_toughness, card.oc_mana_cost],
         );
     if let Err(e) = res {
         dbg!(e);
         panic!("Error adding the card: {:?}", &card);
     }
-}
-
-fn get_omenpath_cards() -> Vec<DbCard> {
-    let mut omenpath_db_cards: Vec<DbCard> = Vec::new();
-    let omenpath_cards = download_omenpath_set();
-
-    // TODO - deduplicate these 3 functions. Preparing the DbCard in each function then calling one "insert" should
-    //        work better I think
-    for card in omenpath_cards {
-        let card_name = match card.printed_name {
-            Some(ref printed_name) => printed_name.clone(),
-            None => card.name.clone(),
-        };
-        let power_toughness = match card.power {
-            Some(ref p) => Some(format!("{}/{}", p, card.toughness.clone().unwrap())),
-            None => None,
-        };
-        let oracle_text = match card.oracle_text {
-            Some(ref ot) => ot.to_string(),
-            None => "<No Oracle Text>".to_string(),
-        };
-        let sf_uuid: [u8; 16] = card.id.to_bytes_le();
-        let oracle_uuid: [u8; 16] = card.oracle_id.unwrap().to_bytes_le();
-        // I don't think there's any double cards in here... fingers crossed
-        let card = DbCard {
-            scryfall_uuid: sf_uuid,
-            oracle_uuid: oracle_uuid,
-            name: card_name,
-            type_line: card.type_line,
-            oracle_text,
-            power_toughness,
-            loyalty: card.loyalty,
-            mana_cost: card.mana_cost,
-            scryfall_uri: Some(card.scryfall_uri),
-            ..Default::default()
-        };
-        omenpath_db_cards.push(card);
-    }
-    omenpath_db_cards
 }
 
 fn insert_words(tx: &Transaction, card: &DbCard) {
@@ -475,7 +438,7 @@ fn insert_words(tx: &Transaction, card: &DbCard) {
 pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
     let ac = fs::read_to_string(file).unwrap();
     let ac: Vec<ScryfallCard> = serde_json::from_str(&ac).unwrap();
-    let omenpath_cards = get_omenpath_cards();
+    //let omenpath_cards = get_omenpath_cards();
     let tx = conn.transaction().unwrap();
     for card in ac {
         // This should hopefully filter out Planes cards (but not Planeswalkers!)
@@ -508,10 +471,17 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
             continue;
         }
 
+        // This will likely need to be reviewed if/when a 2 faced card is printed similar
+        //  to Spider-Man/Universes Within
+        let name = match card.printed_name {
+            Some(pn) => pn,
+            None => card.name,
+        };
+
         let card = DbCard {
             scryfall_uuid: card.id.to_bytes_le(),
             oracle_uuid: card.oracle_id.unwrap().to_bytes_le(),
-            name: card.name,
+            name: name,
             type_line: card.type_line,
             oracle_text: match card.oracle_text {
                 Some(ref ot) => ot.to_string(),
@@ -529,11 +499,13 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
         insert_card(&tx, &card);
         insert_words(&tx, &card);
     }
-
-    for card in omenpath_cards {
-        insert_card(&tx, &card);
-        insert_words(&tx, &card);
+    /*
+        Should be already in there if using "default-cards"
+        for card in omenpath_cards {
+            insert_card(&tx, &card);
+            insert_words(&tx, &card);
     }
+        */
 
     let res = tx.commit();
     if let Err(e) = res {
