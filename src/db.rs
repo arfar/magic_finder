@@ -470,6 +470,89 @@ fn filter_out_non_oracle_cards(source_file: &PathBuf) -> PathBuf {
     dest_f_path
 }
 
+pub fn new_update_db_with_file(file: PathBuf, mut conn: Connection) {
+    let ac = fs::read_to_string(&file).unwrap();
+    let ac: Vec<serde_json::Value> = serde_json::from_str(&ac).unwrap();
+    let tx = conn.transaction().unwrap();
+
+    for card in ac {
+        let card: Result<ScryfallCard, serde_json::Error> = serde_json::from_value(card);
+        let card = match card {
+            Err(_e) => continue,
+            Ok(c) => c,
+        };
+        // This should hopefully filter out Planes cards (but not Planeswalkers!)
+        if card.type_line.contains("Plane ") {
+            continue;
+        }
+
+        // This should hopefully filter out art cards and similar sorts of non-card cards
+        if card.set_type == SetType::Memorabilia {
+            continue;
+        }
+
+        // I don't think one would need to search for a token either
+        if card.set_type == SetType::Token {
+            continue;
+        }
+        if card.type_line.contains("Token") {
+            continue;
+        }
+
+        // I don't even know what these are...
+        if card.set_type == SetType::Minigame {
+            continue;
+        }
+
+        if card.name.contains("Black Lotus") {
+            dbg!(&card);
+            dbg!(&card.set);
+        }
+
+        if card.card_faces.is_some() {
+            let card = get_double_card(&card);
+            insert_card(&tx, &card);
+            insert_words(&tx, &card);
+            continue;
+        }
+
+        // This will likely need to be reviewed if/when a 2 faced card is printed similar
+        //  to Spider-Man/Universes Within
+        let name = match card.printed_name {
+            Some(pn) => pn,
+            None => card.name,
+        };
+
+        let card = DbCard {
+            scryfall_uuid: card.id.to_bytes_le(),
+            oracle_uuid: card.oracle_id.unwrap().to_bytes_le(),
+            name,
+            type_line: card.type_line,
+            oracle_text: match card.oracle_text {
+                Some(ref ot) => ot.to_string(),
+                None => "<No Oracle Text>".to_string(),
+            },
+            power_toughness: match card.power {
+                Some(ref p) => Some(format!("{}/{}", p, card.toughness.clone().unwrap())),
+                None => None,
+            },
+            loyalty: card.loyalty,
+            mana_cost: card.mana_cost,
+            scryfall_uri: Some(card.scryfall_uri),
+            set_name: card.set_name,
+            ..Default::default()
+        };
+        insert_card(&tx, &card);
+        insert_words(&tx, &card);
+    }
+
+    let res = tx.commit();
+    if let Err(e) = res {
+        dbg!(e);
+        panic!("Error commiting the db");
+    }
+}
+
 pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
     let filtered_file = filter_out_non_oracle_cards(&file);
     let ac = fs::read_to_string(&filtered_file).unwrap();

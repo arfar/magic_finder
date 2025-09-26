@@ -811,4 +811,28 @@ mod tests {
         let ac = fs::read_to_string(f).unwrap();
         let _ac: Vec<ScryfallCard> = serde_json::from_str(&ac).unwrap();
     }
+
+    #[ignore]
+    #[test]
+    fn testing_deserialize() {
+        let mut f = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        f.push("test_files/all-cards.json");
+        assert!(f.exists(), "You need to download the all-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to all-cards.json");
+
+        let ac = fs::read_to_string(f).unwrap();
+        let ac: Vec<serde_json::Value> = serde_json::from_str(&ac).unwrap();
+        for card in ac {
+            let card: Result<ScryfallCard, serde_json::Error> = serde_json::from_value(card);
+            match card {
+                Ok(_) => {
+                    println!("found a card");
+                    ()
+                }
+                Err(ref e) => {
+                    dbg!(&card);
+                    ()
+                }
+            }
+        }
+    }
 }
