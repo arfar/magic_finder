@@ -99,7 +99,7 @@ Then build and install the package.
 cargo install --path .
 ```
 
-Hopefully `cargo` has installed this somewhere that's already in `$PATH` and you should now already be able to use the binary. Run `magic_finder --help` to test.
+Hopefully `cargo` has installed this somewhere that's already in `$PATH` and you should now already be able to use the binary. Run `magic_finder_cli --help` to test.
 
 #### Install `rofi` (optional, but preferable)
 You will need a rofi version above 1.7.6.
@@ -181,7 +181,6 @@ cp build/rofi ~/bin
 ```
 
 ## TODO / FIXME / Potential FEATURES / Code improvements
- * IMPROVEMENTS Improve the deser to do something like: deser whole file as list of Values, then if can't deser an individual card, skip/remove it, then try add those that remain. Something like that.
  * IMPROVEMENTS Find first set a card was printed.
  * FIXME Word correction doesn't work if multiple words are provided and 1 of the words is spelled correctly
    - for example, try searching "epser origins" and you'll get questions about how to spell "origins" (which is correct) first rather than the actually incorrect word.
