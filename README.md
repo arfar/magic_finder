@@ -142,7 +142,7 @@ From within this `magic_finder` repo folder, run `cargo uninstall`. This will re
 
 I like watch Magic the Gathering (TM) videos, expecially while coding, working, writing, whatever. Often, I don't know what card they're talking about. They'll often say the card name (sometimes a nickname - this tool doesn't help with that), and show it on the screen briefly (or in a tiny/obscured view), and I'll miss what it actually does. When this happens, I need to open a tab on my browser, go to [Scryfall](scryfall.com), type in the name, (sometimes) click the specific card, and the view it. This takes 2-3 page loads and annoying me with an active window / big context switch.
 
-This tool in coordination with `rofi` enables me to hit `META+S`, type in the card name, navigate to the card (if needed) with my keyboard, and display the card. No browser, no HTTP, lower context switch, instant card displayed right there, and goes away when I press anything else.
+This tool in coordination with `rofi` enables me to hit `SUPER + s`, type in the card name, navigate to the card (if needed) with my keyboard, and display the card. No browser, no HTTP, lower context switch, instant card displayed right there, and goes away when I press anything else.
 
 The idea is it's just easier and quicker than my normal process.
 
