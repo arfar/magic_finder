@@ -192,20 +192,7 @@ cp build/rofi ~/bin
    - Optionally, put the Scryfall URI into the clipboard.
    - Double optionally, provide some kind of `xdg-open <SCRYFALL_LINK>` sort of thing.
    - I don't think this is actually possible with `rofi`.
- * FIXME If 2 "different" but the "same" cards have the same name, the display is kinda fucky (see "Vibrant Cityscape") and it's listed twice
- * FIXME There's something wrong with the oracle text for the new cards. (see "Luis" or "Egrix", the refer to "Morlon" and "Gwenom" incorrectly).
-   - This is a problem with the Scryfall API - it returns the Gwenom language. Won't fix here.
- * FIXME If no card misspellings options are available, just exit with error (try searching "avoidance")
  * FEATURE For misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
- * IMPROVEMENTS Add more tests and improve the ones in `deser.rs`
- * IMPROVEMENTS Reduce `deser.rs` to only relevant key:value pairs or seperate into different repo/module entirely. It could maybe be useful for others.
- * FEATURE Add some classic nicknames. Examples include:
-   - Bob -> Dark Confidant
-   - AK -> Accumulated Knowledge
-   - find more here: https://mtg.wiki/page/List_of_Magic_slang/Card_nicknames
- * FEATURE Display images (almost certainly won't implement this).
- * FIXME There are some cards with the same name (e.g. The Superlatorium and B.F.M) which are listed more than once.
-   - Don't think I will fix this... how often are you searching for this anyways?!?
  * TODO Investigate further as why "Gravedigger" gives the Spanish name. I think maybe I should filter out non-English cards. I think it could maybe be because there are some language specific sets. Unsure though.
    - Or just leave it - it doesn't really hurt.
 

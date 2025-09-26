@@ -35,6 +35,10 @@ fn rofi_print_card(card: &DbCard) {
     let _ = Command::new("rofi").args(["-e", &display_string]).output();
 }
 
+fn rofi_print_error(message: &str) {
+    let _ = Command::new("rofi").args(["-e", &message]).output();
+}
+
 fn rofi_show_did_you_mean(magic_words: &[String]) -> String {
     let magic_words_as_one_string = magic_words.join("\n");
     let mut child = Command::new("rofi")
@@ -133,6 +137,10 @@ fn main() {
     let card_search_result = try_match_card(&search_text_words);
     match card_search_result {
         CardMatchResult::DidYouMean(magic_words) => {
+            if magic_words.is_empty() {
+                rofi_print_error("There are no cards with that word");
+                panic!("There are no cards with that error");
+            }
             let did_you_mean_word = vec![rofi_show_did_you_mean(&magic_words)];
             if let Some(word) = did_you_mean_word.get(0) {
                 if word.is_empty() {
