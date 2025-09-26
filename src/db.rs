@@ -524,16 +524,13 @@ mod tests {
         connection
     }
 
-    // TODO figure out why this test takes fucking ages (>2 mins) when the "real" version doesn't
-    //  take this long. Is it the :memory: database?
-    #[ignore]
     #[test]
     fn test_database_load() {
         let conn = init_test_db_and_get_db_connection();
         let mut f = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        f.push("test_files/all-cards.json");
+        f.push("test_files/default-cards.json");
 
-        assert!(f.exists(), "You need to download the all-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to all-cards.json");
+        assert!(f.exists(), "You need to download the default-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to default-cards.json");
         update_db_with_file(f, conn);
     }
 }
