@@ -8,7 +8,6 @@ use magic_finder::try_match_card;
 use magic_finder::update_db_with_file;
 use magic_finder::CardMatchResult;
 use magic_finder::DbExistanceErrors;
-use magic_finder::GetNameType;
 use std::path::PathBuf;
 use std::process::ExitCode;
 use std::process::Termination;
@@ -59,7 +58,7 @@ struct Args {
 
 fn exact_search(search_strings: Vec<String>) -> MtgCardExit {
     let search_string = search_strings.join(" ");
-    let card = get_card_by_name(&search_string, GetNameType::Name);
+    let card = get_card_by_name(&search_string);
     match card {
         None => {
             println!("No card found with exact name of {}", search_string);

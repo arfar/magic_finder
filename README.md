@@ -181,8 +181,6 @@ cp build/rofi ~/bin
 ```
 
 ## TODO / FIXME / Potential FEATURES / Code improvements
- * FIXME Remove the last of the lowercase stuff
-   - I don't think it's needed.
  * IMPROVEMENTS Improve the deser to do something like: deser whole file as list of Values, then if can't deser an individual card, skip/remove it, then try add those that remain. Something like that.
  * IMPROVEMENTS Find first set a card was printed.
  * FIXME Word correction doesn't work if multiple words are provided and 1 of the words is spelled correctly
@@ -208,7 +206,7 @@ cp build/rofi ~/bin
  * FEATURE Display images (almost certainly won't implement this).
  * FIXME There are some cards with the same name (e.g. The Superlatorium and B.F.M) which are listed more than once.
    - Don't think I will fix this... how often are you searching for this anyways?!?
- * TODO Investigate further as why "Gravedigger" gives the Spanish name. I think maybe I should filter out non-English cards.
+ * TODO Investigate further as why "Gravedigger" gives the Spanish name. I think maybe I should filter out non-English cards. I think it could maybe be because there are some language specific sets. Unsure though.
    - Or just leave it - it doesn't really hurt.
 
 ## Thanks

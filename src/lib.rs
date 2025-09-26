@@ -6,7 +6,7 @@ pub use db::{
     check_db_exists_and_populated, find_matching_cards, find_matching_cards_scryfall_style,
     get_all_card_names, get_all_mtg_words, get_all_names_for_card, get_card_by_name,
     get_db_connection, init_db, percentage_search_strings, update_db_with_file, DbCard,
-    DbExistanceErrors, GetNameType,
+    DbExistanceErrors,
 };
 
 mod utils;
@@ -48,7 +48,7 @@ pub fn try_match_card(search_text: &Vec<String>) -> CardMatchResult {
         let (_, close_card_names): (Vec<usize>, Vec<String>) = close_names.into_iter().unzip();
         CardMatchResult::DidYouMean(close_card_names)
     } else if matching_cards.len() == 1 {
-        let card = get_card_by_name(&matching_cards[0].name, GetNameType::Name).unwrap();
+        let card = get_card_by_name(&matching_cards[0].name).unwrap();
         CardMatchResult::ExactCardFound(card)
     } else {
         matching_cards.sort();

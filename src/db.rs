@@ -121,24 +121,11 @@ pub struct DbCard {
     pub set_name: String,
 }
 
-pub enum GetNameType {
-    Name,
-    LowercaseName,
-}
-
-pub fn get_card_by_name(name: &str, name_type: GetNameType) -> Option<DbCard> {
+pub fn get_card_by_name(name: &str) -> Option<DbCard> {
     let sqlite_file = get_local_data_sqlite_file();
     let conn = Connection::open(sqlite_file).unwrap();
-    let sql = match name_type {
-        GetNameType::Name => {
-            "SELECT scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost, set_name
-             FROM cards WHERE name = (?1)"
-        }
-        GetNameType::LowercaseName => {
-            "SELECT scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost, set_name
-             FROM cards WHERE LOWER(name) = (?1)"
-        }
-    };
+    let sql = "SELECT scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost, set_name
+             FROM cards WHERE name = (?1)";
     let mut stmt = conn.prepare(sql).unwrap();
     let mut rows = stmt.query([name]).unwrap();
     rows.next().unwrap().map(|row| DbCard {

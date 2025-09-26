@@ -6,7 +6,6 @@ use magic_finder::try_match_card;
 use magic_finder::update_db_with_file;
 use magic_finder::CardMatchResult;
 use magic_finder::DbCard;
-use magic_finder::GetNameType;
 use std::env;
 use std::io::ErrorKind;
 use std::io::Write;
@@ -155,8 +154,7 @@ fn main() {
                     if selected_card.is_empty() {
                         panic!("You probably exited early. You didn't select a card");
                     }
-                    let selected_card =
-                        get_card_by_name(&selected_card, GetNameType::Name).unwrap();
+                    let selected_card = get_card_by_name(&selected_card).unwrap();
                     rofi_print_card(&selected_card);
                 }
                 CardMatchResult::ExactCardFound(card) => {
@@ -169,7 +167,7 @@ fn main() {
             if selected_card.is_empty() {
                 panic!("You probably exited early. You didn't select a card");
             }
-            let selected_card = get_card_by_name(&selected_card, GetNameType::Name).unwrap();
+            let selected_card = get_card_by_name(&selected_card).unwrap();
             rofi_print_card(&selected_card);
         }
         CardMatchResult::ExactCardFound(card) => {
