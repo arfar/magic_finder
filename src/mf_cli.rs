@@ -4,7 +4,6 @@ use magic_finder::get_card_by_name;
 use magic_finder::get_db_connection;
 use magic_finder::get_local_data_folder;
 use magic_finder::init_db;
-use magic_finder::new_update_db_with_file;
 use magic_finder::try_match_card;
 use magic_finder::update_db_with_file;
 use magic_finder::CardMatchResult;
@@ -47,8 +46,6 @@ struct Args {
     /// Update the local db from given Scryfall bulk download
     #[arg(short, long)]
     update: Option<String>,
-    #[arg(long)]
-    new_update: Option<String>,
     /// Search for the exact string
     #[arg(short, long)]
     exact: bool,
@@ -84,13 +81,7 @@ fn main() -> MtgCardExit {
         println!("Your database should be updated now");
         return MtgCardExit::UpdateSuccess;
     }
-    if let Some(update) = args.new_update {
-        init_db();
-        let conn = get_db_connection();
-        new_update_db_with_file(PathBuf::from(update), conn);
-        println!("Your database should be updated now");
-        return MtgCardExit::UpdateSuccess;
-    }
+
     if args.database_folder {
         println!("{}", get_local_data_folder().display());
         return MtgCardExit::PrintedDatabaseFolder;

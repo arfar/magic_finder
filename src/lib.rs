@@ -5,8 +5,8 @@ mod db;
 pub use db::{
     check_db_exists_and_populated, find_matching_cards, find_matching_cards_scryfall_style,
     get_all_card_names, get_all_mtg_words, get_all_names_for_card, get_card_by_name,
-    get_db_connection, init_db, new_update_db_with_file, percentage_search_strings,
-    update_db_with_file, DbCard, DbExistanceErrors,
+    get_db_connection, init_db, percentage_search_strings, update_db_with_file, DbCard,
+    DbExistanceErrors,
 };
 
 mod utils;

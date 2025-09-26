@@ -1,11 +1,8 @@
 use deunicode::deunicode;
 use rusqlite::{params, params_from_iter, Connection, Transaction};
 use std::cmp::Ordering;
-use std::env;
 use std::fmt;
 use std::fs;
-use std::io::prelude::*;
-use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 
 use super::deser::{ScryfallCard, SetType};
@@ -430,47 +427,7 @@ fn insert_words(tx: &Transaction, card: &DbCard) {
     }
 }
 
-// I'm horrendously embarrassed by this - but I think it works
-fn filter_out_non_oracle_cards(source_file: &PathBuf) -> PathBuf {
-    assert!(source_file.exists());
-    let ac = fs::File::open(source_file).unwrap();
-    let reader = BufReader::new(ac);
-
-    let mut dest_f_path = env::temp_dir();
-    dest_f_path.push("magic_finder_default-cards-filtered.json");
-    let res = fs::remove_file(&dest_f_path);
-    match res {
-        Ok(_) => (),
-        Err(e) => {
-            if e.raw_os_error().unwrap() == 2 {
-                // 2 = file doesn't exist - which is fine for us
-            } else {
-                panic!("{}", e);
-            }
-        }
-    }
-    let mut dest_f = fs::File::create(&dest_f_path).unwrap();
-
-    dest_f.write("[\n".as_bytes()).unwrap();
-    let mut first = true;
-    for mut line in reader.lines().flatten() {
-        line.pop();
-        let a_card: Result<ScryfallCard, serde_json::Error> = serde_json::from_str(line.as_ref());
-        if a_card.is_ok() {
-            if !first {
-                let _res = dest_f.write(",".as_bytes());
-            } else {
-                first = false;
-            }
-            dest_f.write(line.as_bytes()).unwrap();
-            dest_f.write("\n".as_bytes()).unwrap();
-        }
-    }
-    dest_f.write("]\n".as_bytes()).unwrap();
-    dest_f_path
-}
-
-pub fn new_update_db_with_file(file: PathBuf, mut conn: Connection) {
+pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
     let ac = fs::read_to_string(&file).unwrap();
     let ac: Vec<serde_json::Value> = serde_json::from_str(&ac).unwrap();
     let tx = conn.transaction().unwrap();
@@ -553,87 +510,6 @@ pub fn new_update_db_with_file(file: PathBuf, mut conn: Connection) {
     }
 }
 
-pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
-    let filtered_file = filter_out_non_oracle_cards(&file);
-    let ac = fs::read_to_string(&filtered_file).unwrap();
-    let ac: Vec<ScryfallCard> = serde_json::from_str(&ac).unwrap();
-    let tx = conn.transaction().unwrap();
-
-    for card in ac {
-        // This should hopefully filter out Planes cards (but not Planeswalkers!)
-        if card.type_line.contains("Plane ") {
-            continue;
-        }
-
-        // This should hopefully filter out art cards and similar sorts of non-card cards
-        if card.set_type == SetType::Memorabilia {
-            continue;
-        }
-
-        // I don't think one would need to search for a token either
-        if card.set_type == SetType::Token {
-            continue;
-        }
-        if card.type_line.contains("Token") {
-            continue;
-        }
-
-        // I don't even know what these are...
-        if card.set_type == SetType::Minigame {
-            continue;
-        }
-
-        if card.name.contains("Black Lotus") {
-            dbg!(&card);
-            dbg!(&card.set);
-        }
-
-        if card.card_faces.is_some() {
-            let card = get_double_card(&card);
-            insert_card(&tx, &card);
-            insert_words(&tx, &card);
-            continue;
-        }
-
-        // This will likely need to be reviewed if/when a 2 faced card is printed similar
-        //  to Spider-Man/Universes Within
-        let name = match card.printed_name {
-            Some(pn) => pn,
-            None => card.name,
-        };
-
-        let card = DbCard {
-            scryfall_uuid: card.id.to_bytes_le(),
-            oracle_uuid: card.oracle_id.unwrap().to_bytes_le(),
-            name,
-            type_line: card.type_line,
-            oracle_text: match card.oracle_text {
-                Some(ref ot) => ot.to_string(),
-                None => "<No Oracle Text>".to_string(),
-            },
-            power_toughness: match card.power {
-                Some(ref p) => Some(format!("{}/{}", p, card.toughness.clone().unwrap())),
-                None => None,
-            },
-            loyalty: card.loyalty,
-            mana_cost: card.mana_cost,
-            scryfall_uri: Some(card.scryfall_uri),
-            set_name: card.set_name,
-            ..Default::default()
-        };
-        insert_card(&tx, &card);
-        insert_words(&tx, &card);
-    }
-
-    let res = tx.commit();
-    if let Err(e) = res {
-        dbg!(e);
-        fs::remove_file(&filtered_file).unwrap();
-        panic!("Error commiting the db");
-    }
-    fs::remove_file(&filtered_file).unwrap();
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -648,7 +524,8 @@ mod tests {
         connection
     }
 
-    // TODO figure out why this test takes fucking ages (>2 mins)
+    // TODO figure out why this test takes fucking ages (>2 mins) when the "real" version doesn't
+    //  take this long. Is it the :memory: database?
     #[ignore]
     #[test]
     fn test_database_load() {
