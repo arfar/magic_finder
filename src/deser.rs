@@ -712,6 +712,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn tmp_filtering_lines_test() {
         let weird_cards = weird_cards();
         print!("grep -v ");

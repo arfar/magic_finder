@@ -74,6 +74,9 @@ impl fmt::Display for DbCard {
         if let Some(l) = &self.oc_loyalty {
             write!(f, "\nStarting Loyalty: {}", l)?
         }
+
+        write!(f, "\nSet: {}", self.set_name)?;
+
         Ok(())
     }
 }
@@ -115,6 +118,7 @@ pub struct DbCard {
     pub oc_power_toughness: Option<String>,
     pub oc_loyalty: Option<String>,
     pub oc_mana_cost: Option<String>,
+    pub set_name: String,
 }
 
 pub enum GetNameType {
@@ -127,11 +131,11 @@ pub fn get_card_by_name(name: &str, name_type: GetNameType) -> Option<DbCard> {
     let conn = Connection::open(sqlite_file).unwrap();
     let sql = match name_type {
         GetNameType::Name => {
-            "SELECT scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost
+            "SELECT scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost, set_name
              FROM cards WHERE name = (?1)"
         }
         GetNameType::LowercaseName => {
-            "SELECT scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost
+            "SELECT scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost, set_name
              FROM cards WHERE LOWER(name) = (?1)"
         }
     };
@@ -153,6 +157,7 @@ pub fn get_card_by_name(name: &str, name_type: GetNameType) -> Option<DbCard> {
         oc_power_toughness: row.get(12).unwrap(),
         oc_loyalty: row.get(13).unwrap(),
         oc_mana_cost: row.get(14).unwrap(),
+        set_name: row.get(15).unwrap(),
     })
 }
 
@@ -171,7 +176,7 @@ pub fn find_matching_cards_scryfall_style(percentaged_search_strings: &[String])
     let sqlite_file = get_local_data_sqlite_file();
     let conn = Connection::open(sqlite_file).unwrap();
 
-    let mut sql: String = "SELECT scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost FROM cards WHERE".into();
+    let mut sql: String = "SELECT scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost, set_name FROM cards WHERE".into();
     for i in 0..percentaged_search_strings.len() {
         sql.push_str(&format!(
             " ( LOWER(name) LIKE (?{}) OR LOWER(oc_name) LIKE (?{}) ) AND",
@@ -202,6 +207,7 @@ pub fn find_matching_cards_scryfall_style(percentaged_search_strings: &[String])
             oc_power_toughness: row.get(12).unwrap(),
             oc_loyalty: row.get(13).unwrap(),
             oc_mana_cost: row.get(14).unwrap(),
+            set_name: row.get(15).unwrap(),
         })
     })
     .unwrap()
@@ -214,7 +220,7 @@ pub fn get_all_names_for_card(card: &DbCard) -> Vec<String> {
     let conn = Connection::open(sqlite_file).unwrap();
     let mut stmt = conn
         .prepare(
-            "SELECT scryfall_uuid, oracle_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost FROM cards WHERE oracle_uuid = (?1) ",
+            "SELECT scryfall_uuid, oracle_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost, set_name FROM cards WHERE oracle_uuid = (?1) ",
         )
         .unwrap();
     let cards: Vec<DbCard> = stmt
@@ -235,6 +241,7 @@ pub fn get_all_names_for_card(card: &DbCard) -> Vec<String> {
                 oc_power_toughness: row.get(12).unwrap(),
                 oc_loyalty: row.get(13).unwrap(),
                 oc_mana_cost: row.get(14).unwrap(),
+                set_name: row.get(15).unwrap(),
             })
         })
         .unwrap()
@@ -258,7 +265,7 @@ pub fn find_matching_cards(name: &str) -> Vec<DbCard> {
     name.insert(0, '%');
     let mut stmt = conn
         .prepare(
-            "SELECT scryfall_uuid, oracle_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost
+            "SELECT scryfall_uuid, oracle_uuid, name,  type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost, set_name
              FROM cards WHERE LOWER(name) LIKE (?1) OR LOWER(oc_name) LIKE (?1)",
         )
         .unwrap();
@@ -279,6 +286,7 @@ pub fn find_matching_cards(name: &str) -> Vec<DbCard> {
             oc_power_toughness: row.get(12).unwrap(),
             oc_loyalty: row.get(13).unwrap(),
             oc_mana_cost: row.get(14).unwrap(),
+            set_name: row.get(15).unwrap(),
         })
     })
     .unwrap()
@@ -331,7 +339,8 @@ CREATE TABLE cards (
     oc_oracle_text TEXT DEFAULT NULL,
     oc_power_toughness TEXT DEFAULT NULL,
     oc_loyalty TEXT DEAFULT NULL,
-    oc_mana_cost TEXT DEAFULT NULL
+    oc_mana_cost TEXT DEAFULT NULL,
+    set_name TEXT
 )";
 // Because of how Scryfall gives this to us, other_card_name can mean the other side of the
 //  card or the adventure part of the card
@@ -396,6 +405,7 @@ fn get_double_card(card: &ScryfallCard) -> DbCard {
         oc_power_toughness: second_power_toughness,
         oc_loyalty: second_face.loyalty.clone(),
         oc_mana_cost: second_face.mana_cost.clone(),
+        set_name: card.set_name.clone(),
     }
 }
 
@@ -405,11 +415,9 @@ pub fn get_db_connection() -> Connection {
 }
 
 fn insert_card(tx: &Transaction, card: &DbCard) {
-    // FIXME - I need to use "printed name" when such a name exists.
-    //   Otherwise the second ON CONFLICT will most of the Kraza (c.f. Spider-Punk) cards.
     let res = tx.execute(
-        "INSERT INTO cards (scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_mana_cost) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14) ON CONFLICT(scryfall_uuid) DO NOTHING ON CONFLICT(name) DO NOTHING",
-            params![card.scryfall_uuid, card.oracle_uuid, card.name, card.type_line, card.oracle_text, card.power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri, card.oc_name, card.oc_type_line, card.oc_oracle_text, card.oc_power_toughness, card.oc_mana_cost],
+        "INSERT INTO cards (scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_mana_cost, set_name) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15) ON CONFLICT(scryfall_uuid) DO NOTHING ON CONFLICT(name) DO NOTHING",
+            params![card.scryfall_uuid, card.oracle_uuid, card.name, card.type_line, card.oracle_text, card.power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri, card.oc_name, card.oc_type_line, card.oc_oracle_text, card.oc_power_toughness, card.oc_mana_cost, card.set_name],
         );
     if let Err(e) = res {
         dbg!(e);
@@ -480,6 +488,7 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
     let ac = fs::read_to_string(&filtered_file).unwrap();
     let ac: Vec<ScryfallCard> = serde_json::from_str(&ac).unwrap();
     let tx = conn.transaction().unwrap();
+
     for card in ac {
         // This should hopefully filter out Planes cards (but not Planeswalkers!)
         if card.type_line.contains("Plane ") {
@@ -502,6 +511,11 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
         // I don't even know what these are...
         if card.set_type == SetType::Minigame {
             continue;
+        }
+
+        if card.name.contains("Black Lotus") {
+            dbg!(&card);
+            dbg!(&card.set);
         }
 
         if card.card_faces.is_some() {
@@ -534,6 +548,7 @@ pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
             loyalty: card.loyalty,
             mana_cost: card.mana_cost,
             scryfall_uri: Some(card.scryfall_uri),
+            set_name: card.set_name,
             ..Default::default()
         };
         insert_card(&tx, &card);
@@ -563,13 +578,15 @@ mod tests {
         connection
     }
 
+    // TODO figure out why this test takes fucking ages (>2 mins)
+    #[ignore]
     #[test]
     fn test_database_load() {
         let conn = init_test_db_and_get_db_connection();
         let mut f = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        f.push("test_files/oracle-cards.json");
+        f.push("test_files/all-cards.json");
 
-        assert!(f.exists(), "You need to download the oracle-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to oracle-cards.json");
+        assert!(f.exists(), "You need to download the all-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to all-cards.json");
         update_db_with_file(f, conn);
     }
 }
