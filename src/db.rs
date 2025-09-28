@@ -72,7 +72,7 @@ impl fmt::Display for DbCard {
             write!(f, "\nStarting Loyalty: {}", l)?
         }
 
-        write!(f, "\nSets: {}", self.set_name)?;
+        write!(f, "\nFirst Set: {}", self.set_name)?;
 
         Ok(())
     }
@@ -409,10 +409,7 @@ fn insert_card(tx: &Transaction, card: &DbCard) {
     let res = tx.execute(
         "INSERT INTO cards (scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_mana_cost, set_name, released_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)
 
-    ON CONFLICT(scryfall_uuid) DO UPDATE SET
-      set_name=excluded.set_name,
-      released_at=excluded.released_at
-        WHERE excluded.released_at<cards.released_at
+    ON CONFLICT(scryfall_uuid) DO NOTHING
     ON CONFLICT(name) DO NOTHING;",
             params![card.scryfall_uuid, card.oracle_uuid, card.name, card.type_line, card.oracle_text, card.power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri, card.oc_name, card.oc_type_line, card.oc_oracle_text, card.oc_power_toughness, card.oc_mana_cost, card.set_name, card.released_at],
         );
@@ -479,15 +476,11 @@ pub fn update_db_with_file(file: PathBuf, conn: &mut Connection) {
             continue;
         }
 
-        /*
-            if card.name.contains("Black Lotus") {
-                dbg!(&card);
-                dbg!(&card.released_at);
-        }
-            */
-        if card.name.contains("Gate Smasher") {
-            dbg!(&card);
-            dbg!(&card.released_at);
+        // This is a hack so that I can get the first print. However, because the Through the Omenpath
+        //  cards are also considered re-prints (unsure how I feel about that), I need to avoid those.
+        //  If/when a Throught the Omenpath cards are re-printed, I'll have to rethink it all.
+        if card.reprint && !card.set_name.contains("Omenpath") {
+            continue;
         }
 
         if card.card_faces.is_some() {
