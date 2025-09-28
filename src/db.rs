@@ -72,7 +72,7 @@ impl fmt::Display for DbCard {
             write!(f, "\nStarting Loyalty: {}", l)?
         }
 
-        write!(f, "\nSet: {}", self.set_name)?;
+        write!(f, "\nSets: {}", self.set_name)?;
 
         Ok(())
     }
@@ -407,13 +407,24 @@ pub fn get_db_connection() -> Connection {
 
 fn insert_card(tx: &Transaction, card: &DbCard) {
     let res = tx.execute(
-        "INSERT INTO cards (scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_mana_cost, set_name, released_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16) ON CONFLICT(scryfall_uuid) DO NOTHING ON CONFLICT(name) DO NOTHING",
+        "INSERT INTO cards (scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_mana_cost, set_name, released_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)
+
+    ON CONFLICT(scryfall_uuid) DO UPDATE SET
+      set_name=excluded.set_name,
+      released_at=excluded.released_at
+        WHERE excluded.released_at<cards.released_at
+    ON CONFLICT(name) DO NOTHING;",
             params![card.scryfall_uuid, card.oracle_uuid, card.name, card.type_line, card.oracle_text, card.power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri, card.oc_name, card.oc_type_line, card.oc_oracle_text, card.oc_power_toughness, card.oc_mana_cost, card.set_name, card.released_at],
         );
     if let Err(e) = res {
         dbg!(e);
         panic!("Error adding the card: {:?}", &card);
     }
+    /*
+    To implement getting the earliest set & release date, I think I need to add something along the following:
+    ON CONFLICT(scryfall_uuid) DO UPDATE
+      SET set_name = CASE WHEN <release_date>... something something hopefully I don't need another SELECT, but I might...
+    */
 }
 
 fn insert_words(tx: &Transaction, card: &DbCard) {
@@ -434,7 +445,7 @@ fn insert_words(tx: &Transaction, card: &DbCard) {
     }
 }
 
-pub fn update_db_with_file(file: PathBuf, mut conn: Connection) {
+pub fn update_db_with_file(file: PathBuf, conn: &mut Connection) {
     let ac = fs::read_to_string(&file).unwrap();
     let ac: Vec<serde_json::Value> = serde_json::from_str(&ac).unwrap();
     let tx = conn.transaction().unwrap();
@@ -540,11 +551,35 @@ mod tests {
 
     #[test]
     fn test_database_load() {
-        let conn = init_test_db_and_get_db_connection();
+        let mut conn = init_test_db_and_get_db_connection();
         let mut f = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         f.push("test_files/default-cards.json");
 
         assert!(f.exists(), "You need to download the default-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to default-cards.json");
-        update_db_with_file(f, conn);
+        update_db_with_file(f, &mut conn);
+        let sql = "SELECT scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost, set_name, released_at
+             FROM cards WHERE name = (?1)";
+        let mut stmt = conn.prepare(sql).unwrap();
+        let mut rows = stmt.query(["Black Lotus"]).unwrap();
+        let card = rows.next().unwrap().map(|row| DbCard {
+            scryfall_uuid: row.get(0).unwrap(),
+            oracle_uuid: row.get(1).unwrap(),
+            name: row.get(2).unwrap(),
+            type_line: row.get(3).unwrap(),
+            oracle_text: row.get(4).unwrap(),
+            power_toughness: row.get(5).unwrap(),
+            loyalty: row.get(6).unwrap(),
+            mana_cost: row.get(7).unwrap(),
+            scryfall_uri: row.get(8).unwrap(),
+            oc_name: row.get(9).unwrap(),
+            oc_type_line: row.get(10).unwrap(),
+            oc_oracle_text: row.get(11).unwrap(),
+            oc_power_toughness: row.get(12).unwrap(),
+            oc_loyalty: row.get(13).unwrap(),
+            oc_mana_cost: row.get(14).unwrap(),
+            set_name: row.get(15).unwrap(),
+            released_at: row.get(16).unwrap(),
+        });
+        dbg!(card);
     }
 }

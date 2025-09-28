@@ -114,8 +114,8 @@ fn main() {
         if args.len() == 2 && args[1] == "--update" {
             let filename = rofi_get_filename();
             init_db();
-            let conn = get_db_connection();
-            update_db_with_file(PathBuf::from(filename), conn);
+            let mut conn = get_db_connection();
+            update_db_with_file(PathBuf::from(filename), &mut conn);
             println!("Your database should be updated now");
             return;
         } else {

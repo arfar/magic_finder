@@ -76,8 +76,8 @@ fn main() -> MtgCardExit {
 
     if let Some(update) = args.update {
         init_db();
-        let conn = get_db_connection();
-        update_db_with_file(PathBuf::from(update), conn);
+        let mut conn = get_db_connection();
+        update_db_with_file(PathBuf::from(update), &mut conn);
         println!("Your database should be updated now");
         return MtgCardExit::UpdateSuccess;
     }
