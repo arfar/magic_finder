@@ -181,9 +181,6 @@ cp build/rofi ~/bin
 ```
 
 ## TODO / FIXME / Potential FEATURES / Code improvements
- * IMPROVEMENTS Find first set a card was printed.
- * FIXME Word correction doesn't work if multiple words are provided and 1 of the words is spelled correctly
-   - for example, try searching "epser origins" and you'll get questions about how to spell "origins" (which is correct) first rather than the actually incorrect word.
  * FEATURE Do some kind of "Display All" kind of thing.
    - For example, searching "Tezzeret" gives a bunch of cards and I'm not sure which one I want (other than probably the type - but there's still a bunch of Planeswalkers)
  * FEATURE Make the Scryfall URI (L?) clickable in `rofi`.

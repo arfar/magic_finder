@@ -17,26 +17,41 @@ pub use download::download_omenpath_set;
 
 #[derive(Debug)]
 pub enum CardMatchResult {
-    DidYouMean(Vec<String>),
+    DidYouMean(Vec<String>, Vec<String>),
     MultipleCardsMatch(Vec<DbCard>),
     ExactCardFound(DbCard),
 }
 
 use textdistance::str::damerau_levenshtein;
 
-pub fn find_magic_words_with_close_spelling(search_text: &Vec<String>) -> Vec<(usize, String)> {
+pub fn find_magic_words_with_close_spelling(
+    search_text: &Vec<String>,
+) -> (Vec<(usize, String)>, Vec<String>) {
     let mtg_words = get_all_mtg_words();
-    let mut close_names = Vec::new();
+    let mut close_words = Vec::new();
+    let mut exact_words = Vec::new();
     for search_string in search_text {
+        let mut skip_word = false;
+        let mut close_names_for_current_word = Vec::new();
         for mtg_card_name in &mtg_words {
             let dist = damerau_levenshtein(search_string, mtg_card_name);
+            if dist == 0 {
+                // Skip words that are already matching
+                skip_word = true;
+                break;
+            }
             if dist <= 2 {
-                close_names.push((dist, mtg_card_name.clone()));
+                close_names_for_current_word.push((dist, mtg_card_name.clone()));
             }
         }
+        if !skip_word {
+            close_words.extend(close_names_for_current_word);
+        } else {
+            exact_words.push(search_string.to_string());
+        }
     }
-    close_names.sort_by_key(|k| k.0);
-    close_names
+    close_words.sort_by_key(|k| k.0);
+    (close_words, exact_words)
 }
 
 pub fn try_match_card(search_text: &Vec<String>) -> CardMatchResult {
@@ -44,9 +59,9 @@ pub fn try_match_card(search_text: &Vec<String>) -> CardMatchResult {
     let mut matching_cards = find_matching_cards_scryfall_style(&percentaged_search_text);
 
     if matching_cards.is_empty() {
-        let close_names = find_magic_words_with_close_spelling(search_text);
+        let (close_names, exact_card_names) = find_magic_words_with_close_spelling(search_text);
         let (_, close_card_names): (Vec<usize>, Vec<String>) = close_names.into_iter().unzip();
-        CardMatchResult::DidYouMean(close_card_names)
+        CardMatchResult::DidYouMean(close_card_names, exact_card_names)
     } else if matching_cards.len() == 1 {
         let card = get_card_by_name(&matching_cards[0].name).unwrap();
         CardMatchResult::ExactCardFound(card)

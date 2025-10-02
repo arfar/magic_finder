@@ -136,25 +136,32 @@ fn main() {
     }
     let card_search_result = try_match_card(&search_text_words);
     match card_search_result {
-        CardMatchResult::DidYouMean(magic_words) => {
-            if magic_words.is_empty() {
+        CardMatchResult::DidYouMean(close_magic_words, exact_magic_words) => {
+            if close_magic_words.is_empty() {
                 rofi_print_error("There are no cards with that word");
                 panic!("There are no cards with that error");
             }
-            let did_you_mean_word = vec![rofi_show_did_you_mean(&magic_words)];
+            let did_you_mean_word = vec![rofi_show_did_you_mean(&close_magic_words)];
             if let Some(word) = did_you_mean_word.get(0) {
                 if word.is_empty() {
                     panic!("You probably exited early. magic_finder was about to list all cards - a pointless exercise");
                 }
             }
-            let card_search_result = try_match_card(&did_you_mean_word);
+            let mut re_search_words = did_you_mean_word.clone();
+            for word in exact_magic_words {
+                re_search_words.push(word);
+            }
+            let card_search_result = try_match_card(&re_search_words);
             dbg!(&card_search_result);
             match card_search_result {
                 // This code is a bit of a double up of next codebock
-                CardMatchResult::DidYouMean(_) => {
-                    unreachable!(
-                        "This tool suggested the string \"{}\" but couldn't find this word in any card - there's a problem",
-                        did_you_mean_word.first().unwrap()
+                CardMatchResult::DidYouMean(_, _) => {
+                    rofi_print_error(
+                        &format!(
+                            "Couldn't find any cards with the strings \"{}\".",
+                            re_search_words.join(" ")
+                        )
+                        .to_string(),
                     );
                 }
                 CardMatchResult::MultipleCardsMatch(cards) => {

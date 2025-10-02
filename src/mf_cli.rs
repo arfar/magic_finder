@@ -115,7 +115,7 @@ fn main() -> MtgCardExit {
     }
 
     match try_match_card(&args.search_text) {
-        CardMatchResult::DidYouMean(magic_words) => {
+        CardMatchResult::DidYouMean(magic_words, _) => {
             for magic_word in magic_words {
                 println!("{}", magic_word);
             }
