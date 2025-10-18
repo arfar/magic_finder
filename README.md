@@ -181,6 +181,8 @@ cp build/rofi ~/bin
 ```
 
 ## TODO / FIXME / Potential FEATURES / Code improvements
+ * FIXME For some reason, Mystic Confluence is marked as first being printed in "Through the Omenpath Bonus Sheet" - I can't even see that it's been printed in that set/sheet.
+   - Is there a chance that Scryfall is incorrect? Need to figure out where that datapoint came from
  * FEATURE Do some kind of "Display All" kind of thing.
    - For example, searching "Tezzeret" gives a bunch of cards and I'm not sure which one I want (other than probably the type - but there's still a bunch of Planeswalkers)
  * FEATURE Make the Scryfall URI (L?) clickable in `rofi`.

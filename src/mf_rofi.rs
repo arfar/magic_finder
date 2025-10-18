@@ -119,7 +119,9 @@ fn main() {
             println!("Your database should be updated now");
             return;
         } else {
-            panic!("You've given an argument or arguments that aren't supported. Only --update is supported");
+            panic!(
+                "You've given an argument or arguments that aren't supported. Only --update is supported"
+            );
         }
     }
 
@@ -144,7 +146,9 @@ fn main() {
             let did_you_mean_word = vec![rofi_show_did_you_mean(&close_magic_words)];
             if let Some(word) = did_you_mean_word.get(0) {
                 if word.is_empty() {
-                    panic!("You probably exited early. magic_finder was about to list all cards - a pointless exercise");
+                    panic!(
+                        "You probably exited early. magic_finder was about to list all cards - a pointless exercise"
+                    );
                 }
             }
             let mut re_search_words = did_you_mean_word.clone();
