@@ -1,11 +1,11 @@
+use magic_finder::CardMatchResult;
+use magic_finder::DbCard;
 use magic_finder::get_card_by_name;
 use magic_finder::get_db_connection;
 use magic_finder::get_display_string;
 use magic_finder::init_db;
 use magic_finder::try_match_card;
 use magic_finder::update_db_with_file;
-use magic_finder::CardMatchResult;
-use magic_finder::DbCard;
 use std::env;
 use std::io::ErrorKind;
 use std::io::Write;
@@ -31,12 +31,12 @@ fn initial_rofi() -> String {
 }
 
 fn rofi_print_card(card: &DbCard) {
-    let display_string = get_display_string(&card);
+    let display_string = get_display_string(card);
     let _ = Command::new("rofi").args(["-e", &display_string]).output();
 }
 
 fn rofi_print_error(message: &str) {
-    let _ = Command::new("rofi").args(["-e", &message]).output();
+    let _ = Command::new("rofi").args(["-e", message]).output();
 }
 
 fn rofi_show_did_you_mean(magic_words: &[String]) -> String {
@@ -144,12 +144,12 @@ fn main() {
                 panic!("There are no cards with that error");
             }
             let did_you_mean_word = vec![rofi_show_did_you_mean(&close_magic_words)];
-            if let Some(word) = did_you_mean_word.get(0) {
-                if word.is_empty() {
-                    panic!(
-                        "You probably exited early. magic_finder was about to list all cards - a pointless exercise"
-                    );
-                }
+            if let Some(word) = did_you_mean_word.first()
+                && word.is_empty()
+            {
+                panic!(
+                    "You probably exited early. magic_finder was about to list all cards - a pointless exercise"
+                );
             }
             let mut re_search_words = did_you_mean_word.clone();
             for word in exact_magic_words {

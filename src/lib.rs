@@ -19,7 +19,7 @@ pub use download::download_omenpath_set;
 pub enum CardMatchResult {
     DidYouMean(Vec<String>, Vec<String>),
     MultipleCardsMatch(Vec<DbCard>),
-    ExactCardFound(DbCard),
+    ExactCardFound(Box<DbCard>),
 }
 
 use textdistance::str::damerau_levenshtein;
@@ -78,7 +78,7 @@ pub fn try_match_card(search_text: &Vec<String>) -> CardMatchResult {
     let nickname_card = try_find_card_with_nickname(&search_text_together);
     if let Some(name) = nickname_card {
         let card = get_card_by_name(name).expect("This should always return a well known card");
-        return CardMatchResult::ExactCardFound(card);
+        return CardMatchResult::ExactCardFound(Box::new(card));
     }
     let percentaged_search_text = percentage_search_strings(search_text);
     let mut matching_cards = find_matching_cards_scryfall_style(&percentaged_search_text);
@@ -89,7 +89,7 @@ pub fn try_match_card(search_text: &Vec<String>) -> CardMatchResult {
         CardMatchResult::DidYouMean(close_card_names, exact_card_names)
     } else if matching_cards.len() == 1 {
         let card = get_card_by_name(&matching_cards[0].name).unwrap();
-        CardMatchResult::ExactCardFound(card)
+        CardMatchResult::ExactCardFound(Box::new(card))
     } else {
         matching_cards.sort();
         CardMatchResult::MultipleCardsMatch(matching_cards)
