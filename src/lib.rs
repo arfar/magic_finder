@@ -1,12 +1,12 @@
 mod deser;
-pub use deser::{weird_cards, ScryfallCard};
+pub use deser::{ScryfallCard, weird_cards};
 
 mod db;
 pub use db::{
-    check_db_exists_and_populated, find_matching_cards, find_matching_cards_scryfall_style,
-    get_all_card_names, get_all_mtg_words, get_all_names_for_card, get_card_by_name,
-    get_db_connection, init_db, percentage_search_strings, update_db_with_file, DbCard,
-    DbExistanceErrors,
+    DbCard, DbExistanceErrors, check_db_exists_and_populated, find_matching_cards,
+    find_matching_cards_scryfall_style, get_all_card_names, get_all_mtg_words,
+    get_all_names_for_card, get_card_by_name, get_db_connection, init_db,
+    percentage_search_strings, update_db_with_file,
 };
 
 mod utils;
@@ -54,7 +54,34 @@ pub fn find_magic_words_with_close_spelling(
     (close_words, exact_words)
 }
 
+pub fn try_find_card_with_nickname(search_string: &str) -> Option<&str> {
+    // TODO fill this out more and maybe move to a different file or something
+    //  Look here for some more common names: https://mtg.fandom.com/wiki/List_of_Magic_slang/Card_nicknames
+    let card_nicknames = vec![
+        ("bob", "Dark Confidant"),
+        ("academy", "Tolarian Academy"),
+        ("ak", "Accumulated Knowledge"),
+        ("ancestral", "Ancestral Recall"),
+    ];
+    let lower_name = search_string.to_lowercase();
+    for (card_nickname, card_name) in card_nicknames {
+        if card_nickname == lower_name {
+            // I feel like I should probably be able to return without the to_string
+            //  I need to learn rust more.
+            return Some(card_name);
+        }
+    }
+    None
+}
+
 pub fn try_match_card(search_text: &Vec<String>) -> CardMatchResult {
+    // FIXME - move the word splitting to this function I think
+    let search_text_together = search_text.join(" ");
+    let nickname_card = try_find_card_with_nickname(&search_text_together);
+    if let Some(name) = nickname_card {
+        let card = get_card_by_name(name).expect("This should always return a well known card");
+        return CardMatchResult::ExactCardFound(card);
+    }
     let percentaged_search_text = percentage_search_strings(search_text);
     let mut matching_cards = find_matching_cards_scryfall_style(&percentaged_search_text);
 
