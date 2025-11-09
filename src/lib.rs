@@ -66,8 +66,6 @@ pub fn try_find_card_with_nickname(search_string: &str) -> Option<&str> {
     let lower_name = search_string.to_lowercase();
     for (card_nickname, card_name) in card_nicknames {
         if card_nickname == lower_name {
-            // I feel like I should probably be able to return without the to_string
-            //  I need to learn rust more.
             return Some(card_name);
         }
     }
