@@ -181,6 +181,7 @@ cp build/rofi ~/bin
 ```
 
 ## TODO / FIXME / Potential FEATURES / Code improvements
+ * "palantir" doesn't find anything - not sure why right now.
  * FIXME For some reason, Mystic Confluence is marked as first being printed in "Through the Omenpath Bonus Sheet" - I can't even see that it's been printed in that set/sheet.
    - Is there a chance that Scryfall is incorrect? Need to figure out where that datapoint came from
  * FEATURE Do some kind of "Display All" kind of thing.

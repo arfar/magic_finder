@@ -57,6 +57,7 @@ pub fn find_magic_words_with_close_spelling(
 pub fn try_find_card_with_nickname(search_string: &str) -> Option<&str> {
     // TODO fill this out more and maybe move to a different file or something
     //  Look here for some more common names: https://mtg.fandom.com/wiki/List_of_Magic_slang/Card_nicknames
+    //  Don't look too long though. Fandom sucks
     let card_nicknames = vec![
         ("bob", "Dark Confidant"),
         ("academy", "Tolarian Academy"),
@@ -64,6 +65,7 @@ pub fn try_find_card_with_nickname(search_string: &str) -> Option<&str> {
         ("ancestral", "Ancestral Recall"),
         ("k command", "Kolaghan's Command"),
         ("kcommand", "Kolaghan's Command"),
+        ("jvp", "Jace, Vryn's Prodigy"),
     ];
     let lower_name = search_string.trim().to_lowercase();
     for (card_nickname, card_name) in card_nicknames {
