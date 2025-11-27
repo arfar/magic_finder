@@ -62,8 +62,10 @@ pub fn try_find_card_with_nickname(search_string: &str) -> Option<&str> {
         ("academy", "Tolarian Academy"),
         ("ak", "Accumulated Knowledge"),
         ("ancestral", "Ancestral Recall"),
+        ("k command", "Kolaghan's Command"),
+        ("kcommand", "Kolaghan's Command"),
     ];
-    let lower_name = search_string.to_lowercase();
+    let lower_name = search_string.trim().to_lowercase();
     for (card_nickname, card_name) in card_nicknames {
         if card_nickname == lower_name {
             return Some(card_name);
@@ -73,13 +75,6 @@ pub fn try_find_card_with_nickname(search_string: &str) -> Option<&str> {
 }
 
 pub fn try_match_card(search_text: &Vec<String>) -> CardMatchResult {
-    // FIXME - move the word splitting to this function I think
-    let search_text_together = search_text.join(" ");
-    let nickname_card = try_find_card_with_nickname(&search_text_together);
-    if let Some(name) = nickname_card {
-        let card = get_card_by_name(name).expect("This should always return a well known card");
-        return CardMatchResult::ExactCardFound(Box::new(card));
-    }
     let percentaged_search_text = percentage_search_strings(search_text);
     let mut matching_cards = find_matching_cards_scryfall_style(&percentaged_search_text);
 

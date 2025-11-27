@@ -4,6 +4,7 @@ use magic_finder::get_card_by_name;
 use magic_finder::get_db_connection;
 use magic_finder::get_display_string;
 use magic_finder::init_db;
+use magic_finder::try_find_card_with_nickname;
 use magic_finder::try_match_card;
 use magic_finder::update_db_with_file;
 use std::env;
@@ -130,6 +131,13 @@ fn main() {
     // TODO - do a nice little "rofi_print_error" function to do this
     if search_text.is_empty() {
         panic!("You need to put a search string in");
+    }
+
+    let nickname_card = try_find_card_with_nickname(&search_text);
+    if let Some(name) = nickname_card {
+        let card = get_card_by_name(name).expect("This should always return a well known card");
+        rofi_print_card(&card);
+        return;
     }
 
     let mut search_text_words = Vec::new();
