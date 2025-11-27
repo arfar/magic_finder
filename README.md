@@ -181,7 +181,6 @@ cp build/rofi ~/bin
 ```
 
 ## TODO / FIXME / Potential FEATURES / Code improvements
- * "palantir" doesn't find anything - not sure why right now.
  * FIXME For some reason, Mystic Confluence is marked as first being printed in "Through the Omenpath Bonus Sheet" - I can't even see that it's been printed in that set/sheet.
    - Is there a chance that Scryfall is incorrect? Need to figure out where that datapoint came from
  * FEATURE Do some kind of "Display All" kind of thing.
@@ -193,6 +192,8 @@ cp build/rofi ~/bin
  * FEATURE For misspelled cards, if only 1 hit that makes sense, could just work and/or provide the specific card alongside the other spellings
  * TODO Investigate further as why "Gravedigger" gives the Spanish name. I think maybe I should filter out non-English cards. I think it could maybe be because there are some language specific sets. Unsure though.
    - Or just leave it - it doesn't really hurt.
+   
+ * PROBABLY_WONT_FIX - strings are normalized in that "Palanti(with an acute)r" is now just "Panaltir". Unsure what issues this might raise quite yet - but it at least I can search Palantir correctly now.
 
 ## Thanks
 

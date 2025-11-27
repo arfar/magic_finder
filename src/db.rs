@@ -1,5 +1,5 @@
 use deunicode::deunicode;
-use rusqlite::{params, params_from_iter, Connection, Transaction};
+use rusqlite::{Connection, Transaction, params, params_from_iter};
 use std::cmp::Ordering;
 use std::fmt;
 use std::fs;
@@ -411,7 +411,7 @@ fn insert_card(tx: &Transaction, card: &DbCard) {
 
     ON CONFLICT(scryfall_uuid) DO NOTHING
     ON CONFLICT(name) DO NOTHING;",
-            params![card.scryfall_uuid, card.oracle_uuid, card.name, card.type_line, card.oracle_text, card.power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri, card.oc_name, card.oc_type_line, card.oc_oracle_text, card.oc_power_toughness, card.oc_mana_cost, card.set_name, card.released_at],
+            params![card.scryfall_uuid, card.oracle_uuid, deunicode(&card.name), card.type_line, card.oracle_text, card.power_toughness, card.loyalty, card.mana_cost, card.scryfall_uri, card.oc_name, card.oc_type_line, card.oc_oracle_text, card.oc_power_toughness, card.oc_mana_cost, card.set_name, card.released_at],
         );
     if let Err(e) = res {
         dbg!(e);
@@ -548,7 +548,10 @@ mod tests {
         let mut f = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         f.push("test_files/default-cards.json");
 
-        assert!(f.exists(), "You need to download the default-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to default-cards.json");
+        assert!(
+            f.exists(),
+            "You need to download the default-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to default-cards.json"
+        );
         update_db_with_file(f, &mut conn);
         let sql = "SELECT scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_loyalty, oc_mana_cost, set_name, released_at
              FROM cards WHERE name = (?1)";
