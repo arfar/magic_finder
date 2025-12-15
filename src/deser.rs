@@ -729,7 +729,10 @@ mod tests {
         // It is ever so slightly faster than the other one though!
         let mut f = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         f.push("test_files/all-cards.json");
-        assert!(f.exists(), "You need to download the all-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to all-cards.json");
+        assert!(
+            f.exists(),
+            "You need to download the all-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to all-cards.json"
+        );
         let ac = fs::File::open(f).unwrap();
         let reader = BufReader::new(ac);
         let weird_cards = weird_cards();
@@ -775,7 +778,10 @@ mod tests {
         // It is ever so slightly faster than the other one though!
         let mut f = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         f.push("test_files/all-cards.json");
-        assert!(f.exists(), "You need to download the all-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to all-cards.json");
+        assert!(
+            f.exists(),
+            "You need to download the all-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to all-cards.json"
+        );
         let ac = fs::File::open(f).unwrap();
         let reader = BufReader::new(ac);
         for line in reader.lines().skip(1) {
@@ -806,7 +812,10 @@ mod tests {
     fn deserialize_whole_file() {
         let mut f = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         f.push("test_files/all-cards.json");
-        assert!(f.exists(), "You need to download the all-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to all-cards.json");
+        assert!(
+            f.exists(),
+            "You need to download the all-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to all-cards.json"
+        );
 
         let ac = fs::read_to_string(f).unwrap();
         let _ac: Vec<ScryfallCard> = serde_json::from_str(&ac).unwrap();
@@ -817,7 +826,10 @@ mod tests {
     fn testing_deserialize() {
         let mut f = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         f.push("test_files/all-cards.json");
-        assert!(f.exists(), "You need to download the all-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to all-cards.json");
+        assert!(
+            f.exists(),
+            "You need to download the all-cards-... file from Scryfall bulk data. Can be found here: https://scryfall.com/docs/api/bulk-data and rename to all-cards.json"
+        );
 
         let ac = fs::read_to_string(f).unwrap();
         let ac: Vec<serde_json::Value> = serde_json::from_str(&ac).unwrap();
@@ -826,11 +838,9 @@ mod tests {
             match card {
                 Ok(_) => {
                     println!("found a card");
-                    ()
                 }
-                Err(ref e) => {
+                Err(ref _e) => {
                     dbg!(&card);
-                    ()
                 }
             }
         }

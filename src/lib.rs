@@ -66,6 +66,7 @@ pub fn try_find_card_with_nickname(search_string: &str) -> Option<&str> {
         ("k command", "Kolaghan's Command"),
         ("kcommand", "Kolaghan's Command"),
         ("jvp", "Jace, Vryn's Prodigy"),
+        ("nathan", "Duelist of the Mind"), // This does mean Nathan Drake is harder to search for - fuck that guy
     ];
     let lower_name = search_string.trim().to_lowercase();
     for (card_nickname, card_name) in card_nicknames {

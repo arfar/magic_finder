@@ -1,5 +1,7 @@
 use magic_finder::CardMatchResult;
 use magic_finder::DbCard;
+use magic_finder::DbExistanceErrors;
+use magic_finder::check_db_exists_and_populated;
 use magic_finder::get_card_by_name;
 use magic_finder::get_db_connection;
 use magic_finder::get_display_string;
@@ -124,6 +126,23 @@ fn main() {
                 "You've given an argument or arguments that aren't supported. Only --update is supported"
             );
         }
+    }
+
+    if let Err(e) = check_db_exists_and_populated() {
+        match e {
+            DbExistanceErrors::DbFileDoesntExist => {
+                rofi_print_error("Database doesn't exist - did you run --update?");
+            }
+            DbExistanceErrors::DbFileIsEmptyOfCards => {
+                rofi_print_error("Database doesn't have any cards - try updating maybe?");
+            }
+            DbExistanceErrors::DbFileIsEmptyOfWords => {
+                rofi_print_error(
+                    "Database doesn't have any words (but has cards) - try updating again?",
+                );
+            }
+        }
+        return;
     }
 
     let search_text = initial_rofi();
