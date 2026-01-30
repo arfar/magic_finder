@@ -406,6 +406,9 @@ pub fn get_db_connection() -> Connection {
 }
 
 fn insert_card(tx: &Transaction, card: &DbCard) {
+    if card.name.contains("Punk") {
+        println!("Hello Insert Card?");
+    }
     let res = tx.execute(
         "INSERT INTO cards (scryfall_uuid, oracle_uuid, name, type_line, oracle_text, power_toughness, loyalty, mana_cost, scryfall_uri, oc_name, oc_type_line, oc_oracle_text, oc_power_toughness, oc_mana_cost, set_name, released_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)
 
@@ -450,9 +453,18 @@ pub fn update_db_with_file(file: PathBuf, conn: &mut Connection) {
     for card in ac {
         let card: Result<ScryfallCard, serde_json::Error> = serde_json::from_value(card);
         let card = match card {
-            Err(_e) => continue,
+            Err(e) => {
+                println!("{:?}", e);
+                continue;
+            }
             Ok(c) => c,
         };
+        if card.name.contains("Punk") {
+            println!("{}", card.name);
+        }
+        if card.name.contains("Magitek Infantry") {
+            println!("{}", card.name);
+        }
         // This should hopefully filter out Planes cards (but not Planeswalkers!)
         if card.type_line.contains("Plane ") {
             continue;
@@ -476,6 +488,10 @@ pub fn update_db_with_file(file: PathBuf, conn: &mut Connection) {
             continue;
         }
 
+        if card.name.contains("Punk") {
+            println!("Not Token, memorabilia, or other weird stuff");
+        }
+
         // This is a hack so that I can get the first print. However, because the Through the Omenpath
         //  cards are also considered re-prints (unsure how I feel about that), I need to avoid those.
         //  If/when a Throught the Omenpath cards are re-printed, I'll have to rethink it all.
@@ -483,24 +499,41 @@ pub fn update_db_with_file(file: PathBuf, conn: &mut Connection) {
             continue;
         }
 
+        if card.name.contains("Punk") {
+            println!("Hello?");
+        }
+
         if card.card_faces.is_some() {
+            if card.name.contains("Punk") {
+                println!("Hello1?");
+            }
             let card = get_double_card(&card);
             insert_card(&tx, &card);
             insert_words(&tx, &card);
             continue;
         }
 
+        if card.name.contains("Punk") {
+            println!("Hello2?");
+        }
+
         // This will likely need to be reviewed if/when a 2 faced card is printed similar
         //  to Spider-Man/Universes Within
-        let name = match card.printed_name {
-            Some(pn) => pn,
-            None => card.name,
-        };
+        // FIXME - Scryfall I think has changed what "printed name" means - Spider-Punk is printed as Kraza
+        //  Problem is I can't remember why I did this in the first place...
+        //let name = match card.printed_name {
+        //    Some(pn) => pn,
+        //    None => card.name.clone(),
+        //};
+
+        //if card.name.contains("Punk") {
+        //    println!("{} -> {}", card.name, name);
+        //}
 
         let card = DbCard {
             scryfall_uuid: card.id.to_bytes_le(),
             oracle_uuid: card.oracle_id.unwrap().to_bytes_le(),
-            name,
+            name: card.name,
             type_line: card.type_line,
             oracle_text: match card.oracle_text {
                 Some(ref ot) => ot.to_string(),
@@ -517,6 +550,9 @@ pub fn update_db_with_file(file: PathBuf, conn: &mut Connection) {
             released_at: card.released_at.to_string(),
             ..Default::default()
         };
+        if card.name.contains("Punk") {
+            println!("Hello3?");
+        }
         insert_card(&tx, &card);
         insert_words(&tx, &card);
     }

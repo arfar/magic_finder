@@ -27,6 +27,7 @@ pub struct ScryfallCard {
     pub mtgo_id: Option<u64>,
     pub mtgo_foil_id: Option<u64>,
     pub multiverse_ids: Option<Vec<u64>>,
+    pub resource_id: Option<String>, // This is new - need to figure out what it means
     pub tcgplayer_id: Option<u64>,
     pub tcgplayer_etched_id: Option<u64>,
     pub cardmarket_id: Option<u64>,

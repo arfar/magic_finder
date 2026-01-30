@@ -119,11 +119,11 @@ fn main() {
             init_db();
             let mut conn = get_db_connection();
             update_db_with_file(PathBuf::from(filename), &mut conn);
-            println!("Your database should be updated now");
+            rofi_print_error("Your database should be updated now");
             return;
         } else {
-            panic!(
-                "You've given an argument or arguments that aren't supported. Only --update is supported"
+            rofi_print_error(
+                "You've given an argument or arguments that aren't supported. Only --update is supported",
             );
         }
     }
